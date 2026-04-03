@@ -362,6 +362,9 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   .mrow{grid-template-columns:1fr;}
   .isl-all-grid{grid-template-columns:1fr;}
 }
+
+/* GitHub Pages環境ではサーバー設定を非表示 */
+.server-setting-row { display: flex; }
 </style>
 </head>
 <body>
@@ -431,12 +434,33 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 </div>
 
 <script>
-// ===== Microsoft Graph API設定 =====
+// ===== Supabase設定（スマホ閲覧用） =====
+const SUPABASE_URL = 'https://fkqnasfjghwkauypogji.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcW5hc2ZqZ2h3a2F1eXBvZ2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNjE3NDcsImV4cCI6MjA5MDczNzc0N30.JAPUActmfOM3L62simTf-puABS2KrDMiIp8AaIRqt94';
+const SUPABASE_REST = SUPABASE_URL + '/rest/v1/pachinko_data';
+
+async function readSupabase(machine){
+  try{
+    const url = SUPABASE_REST + '?machine=eq.' + machine + '&select=data,weights';
+    const res = await fetch(url, {
+      headers: {
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+      }
+    });
+    if(!res.ok){ console.warn('[Supabase] read failed:', res.status); return null; }
+    const rows = await res.json();
+    if(!rows || !rows.length) return null;
+    return rows[0];
+  }catch(e){ console.warn('[Supabase] error:', e); return null; }
+}
+
+// ===== Microsoft Graph API設定（未使用・互換性のため残す） =====
 const GRAPH_CONFIG = {
   // Microsoft公開クライアントID（個人用OneDrive対応・アプリ登録不要）
   clientId: localStorage.getItem('graph_client_id') || 'd3590ed6-52b3-4102-aeff-aad2292ab01c',
   authority: 'https://login.microsoftonline.com/consumers',
-  redirectUri: window.location.href.split('?')[0].split('#')[0],
+  redirectUri: 'https://terazo21.github.io/pachinko-app/',
 };
 const GRAPH_SCOPES = ['Files.Read'];
 const ONEDRIVE_BASE = 'https://graph.microsoft.com/v1.0/me/drive';
@@ -453,23 +477,40 @@ function initMsal(){
       cache:{ cacheLocation:'localStorage' }
     });
     msalInstance.handleRedirectPromise().then(function(resp){
-      if(resp){ graphToken=resp.accessToken; }
-    }).catch(function(e){ console.warn('[MSAL]',e); });
+      if(resp && resp.accessToken){
+        graphToken = resp.accessToken;
+        console.log('[MSAL] redirect login success');
+        // ログイン成功 → IS_MOBILE_MODEをONにしてデータ読込
+        IS_MOBILE_MODE = true;
+        localStorage.setItem('mobile_mode','1');
+        localStorage.removeItem('msal_redirect_pending');
+        updateMobileBanner();
+        loadDB().then(function(){
+          loadWeights().then(function(){ learnWeights(); render(); });
+        });
+      }
+    }).catch(function(e){ console.warn('[MSAL] redirect error:',e); });
   }catch(e){ console.warn('[MSAL] init error:',e); }
 }
 
 async function getGraphToken(){
-  if(!msalInstance||GRAPH_CONFIG.clientId==='YOUR_CLIENT_ID') return null;
+  if(!msalInstance) return null;
   const accounts=msalInstance.getAllAccounts();
   if(!accounts.length){
-    try{ await msalInstance.loginPopup({scopes:GRAPH_SCOPES, prompt:'select_account'}); }catch(e){ console.warn('[MSAL] login failed:',e); return null; }
+    // リダイレクト方式（ポップアップ不要・スマホ対応）
+    localStorage.setItem('msal_redirect_pending','1');
+    localStorage.setItem('msal_redirect_return', window.location.href);
+    await msalInstance.loginRedirect({scopes:GRAPH_SCOPES, prompt:'select_account'});
+    return null; // リダイレクト後に処理される
   }
   try{
-    const r=await msalInstance.acquireTokenSilent({scopes:GRAPH_SCOPES,account:msalInstance.getAllAccounts()[0]});
+    const r=await msalInstance.acquireTokenSilent({scopes:GRAPH_SCOPES,account:accounts[0]});
     return r.accessToken;
   }catch(e){
-    try{ const r=await msalInstance.acquireTokenPopup({scopes:GRAPH_SCOPES}); return r.accessToken; }
-    catch(e2){ return null; }
+    // サイレント失敗時もリダイレクト
+    localStorage.setItem('msal_redirect_pending','1');
+    await msalInstance.acquireTokenRedirect({scopes:GRAPH_SCOPES,account:accounts[0]});
+    return null;
   }
 }
 
@@ -609,12 +650,16 @@ let DB_LOADED=false;
 async function loadDB(){
   var calcFn=MACHINE==='eva'?calcDamaEva:calcDamaDaikai;
   var src=MACHINE==='eva'?INIT_EVA:INIT;
-  var fname=MACHINE==='eva'?'eva_data.json':'daikai5_data.json';
   if(IS_MOBILE_MODE){
-    var gdata=await readOneDriveJson(fname);
-    if(gdata&&Array.isArray(gdata)&&gdata.length>0){DB=gdata;DB_LOADED=true;console.log('[Graph] Loaded '+DB.length+' records');return;}
-    console.warn('[Graph] failed, using initial data');
-    DB=src.map(r=>Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)}));return;
+    var row = await readSupabase(MACHINE);
+    if(row && Array.isArray(row.data) && row.data.length > 0){
+      DB = row.data; DB_LOADED = true;
+      console.log('[Supabase] Loaded ' + DB.length + ' records');
+      return;
+    }
+    console.warn('[Supabase] read failed, using initial data');
+    DB = src.map(r=>Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)}));
+    return;
   }
   var ep=getMC().dataEp;
   try{
@@ -688,9 +733,10 @@ let W={...DEFAULT_W};
 async function loadWeights(){
   var wfname=MACHINE==='eva'?'eva_weights.json':'daikai5_weights.json';
   if(IS_MOBILE_MODE){
-    var gw=await readOneDriveJson(wfname);
-    if(gw&&Object.keys(gw).length>0) W=Object.assign({},DEFAULT_W,gw);
-    else W=Object.assign({},DEFAULT_W);
+    var row = await readSupabase(MACHINE);
+    if(row && row.weights && Object.keys(row.weights).length > 0)
+      W = Object.assign({}, DEFAULT_W, row.weights);
+    else W = Object.assign({}, DEFAULT_W);
     return;
   }
   try{
@@ -1075,7 +1121,7 @@ function renderUpload(){
         oninput="ONEDRIVE_DATA_PATH=this.value;localStorage.setItem('onedrive_data_path',this.value)"/>
       <div style="font-size:11px;color:var(--text2);width:100%;margin-top:2px;">OneDrive内のdataフォルダのパス（上記のまま変更不要な場合が多いです）</div>
       <div id="mobileModeMsg" style="font-size:11px;color:var(--text3);width:100%;margin-top:4px;"></div>
-      <span class="ak-note">※ Client IDは空欄のままでもOK（Microsoft公開IDを使用）。Azureで独自登録した場合のみ入力してください</span>
+      <span class="ak-note">※ JSONBin.ioを使用。ログイン不要・APIキーのみで動作します</span>
       <div style="display:flex;gap:8px;margin-top:6px;width:100%;">
         <input class="ak-inp" type="text" id="clientIdInp" placeholder="Azure Client ID" value="${GRAPH_CONFIG.clientId!=='YOUR_CLIENT_ID'?GRAPH_CONFIG.clientId:''}"（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）" style="flex:1;"/>
         <button class="bsm" onclick="saveClientId()" style="padding:5px 12px;white-space:nowrap;">💾 保存</button>
@@ -1660,6 +1706,7 @@ function toggleMobileMode(enabled){
   var msg = document.getElementById('mobileModeMsg');
   if(enabled){
     if(msg){ msg.textContent = '📱 スマホモードON: OneDriveから読み込みます'; msg.style.color='var(--ev)'; }
+    // JSONBin.ioから直接読み込み（ログイン不要）
     loadDB().then(function(){ loadWeights().then(function(){ learnWeights(); render(); }); });
   } else {
     if(msg){ msg.textContent = '💻 PCモードOFF: ローカルサーバーから読み込みます'; msg.style.color='var(--accent)'; }
@@ -1898,9 +1945,16 @@ function getTomorrowPrediction(thresh){
 
 (async()=>{
   // ===== 設定値の復元 =====
-  // モバイルモード復元
-  var savedMobile = localStorage.getItem('mobile_mode');
-  if(savedMobile === '1') IS_MOBILE_MODE = true;
+  // GitHub Pages環境では自動的にスマホモードON
+  var isGitHubPages = window.location.hostname.includes('github.io');
+  if(isGitHubPages){
+    IS_MOBILE_MODE = true;
+    localStorage.setItem('mobile_mode','1');
+    console.log('[Mode] GitHub Pages detected: mobile mode auto-enabled');
+  } else {
+    var savedMobile = localStorage.getItem('mobile_mode');
+    if(savedMobile === '1') IS_MOBILE_MODE = true;
+  }
   // Client ID復元
   var savedClientId = localStorage.getItem('graph_client_id');
   if(savedClientId) GRAPH_CONFIG.clientId = savedClientId;

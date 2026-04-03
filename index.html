@@ -849,7 +849,134 @@ function learnWeights(){
   return{corrAvg,corrMax,corrCnt10k,corrRate10k,corrTrend,corrHotY,corrHotD2,samples:samples.length};
 }
 
-// ===== 台統計（学習済み係数で計算） =====
+// ===== 曜日×パターン分析 =====
+// 曜日番号: 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
+const WEEKDAY_NAMES = ['日','月','火','水','木','金','土'];
+
+function getDayOfWeek(dateStr){
+  return new Date(dateStr).getDay();
+}
+
+// 差玉をパターン分類
+function getDamaPattern(dama){
+  if(dama >= 10000) return 'hot';      // 10k+
+  if(dama >= 5000)  return 'warm';     // 5k+
+  if(dama >= 0)     return 'neutral';  // プラス
+  return 'cold';                        // マイナス
+}
+
+// 曜日×前日パターン → 翌日結果の遷移を集計
+function buildWeekdayPatternData(){
+  var dates = getDates().slice().reverse(); // 古い順
+  // taiWeekday[曜日][前日パターン][台番号] = {hit:0, total:0}
+  var taiWeekday = {};
+  // islWeekday[曜日][前日島パターン][島ラベル] = {hit:0, total:0}
+  var islWeekday = {};
+
+  for(var i = 0; i < dates.length - 1; i++){
+    var today     = dates[i];
+    var tomorrow  = dates[i+1];
+    var todayRows    = getByDate(today);
+    var tomorrowRows = getByDate(tomorrow);
+    if(!todayRows.length || !tomorrowRows.length) continue;
+
+    var dow = getDayOfWeek(tomorrow); // 翌日の曜日
+    if(!taiWeekday[dow]) taiWeekday[dow] = {};
+    if(!islWeekday[dow]) islWeekday[dow] = {};
+
+    // 台レベル
+    todayRows.forEach(function(tr){
+      if(!isValidActual(tr)) return;
+      var pattern = getDamaPattern(tr.差玉);
+      var key = pattern;
+      if(!taiWeekday[dow][key]) taiWeekday[dow][key] = {};
+      if(!taiWeekday[dow][key][tr.u]) taiWeekday[dow][key][tr.u] = {hit:0, total:0};
+
+      // 翌日の同台の結果
+      var nextRow = tomorrowRows.find(function(r){ return r.u === tr.u; });
+      if(nextRow && isValidActual(nextRow)){
+        taiWeekday[dow][key][tr.u].total++;
+        if(nextRow.差玉 >= 10000) taiWeekday[dow][key][tr.u].hit++;
+      }
+    });
+
+    // 島レベル
+    var units = todayRows.map(function(r){ return r.u; });
+    var groups = buildGroups(units);
+    function getIslLabel(u){
+      for(var g=0;g<groups.length;g++){
+        if(groups[g].units.indexOf(u)>=0) return groups[g].label;
+      }
+      return null;
+    }
+
+    // 今日の島ごとの平均差玉
+    groups.forEach(function(g){
+      var gRows = todayRows.filter(function(r){ return g.units.indexOf(r.u)>=0 && isValidActual(r); });
+      if(!gRows.length) return;
+      var avg = gRows.reduce(function(s,r){return s+r.差玉;},0)/gRows.length;
+      var pattern = getDamaPattern(avg);
+      var key = pattern;
+      if(!islWeekday[dow][key]) islWeekday[dow][key] = {};
+      if(!islWeekday[dow][key][g.label]) islWeekday[dow][key][g.label] = {hit:0, total:0};
+
+      // 翌日の同島の結果
+      var nextRows = tomorrowRows.filter(function(r){ return g.units.indexOf(r.u)>=0 && isValidActual(r); });
+      if(nextRows.length){
+        var nextAvg = nextRows.reduce(function(s,r){return s+r.差玉;},0)/nextRows.length;
+        islWeekday[dow][key][g.label].total++;
+        if(nextAvg >= 10000) islWeekday[dow][key][g.label].hit++;
+      }
+    });
+  }
+
+  return {taiWeekday, islWeekday};
+}
+
+// 台の曜日×パターンボーナスを計算
+// u: 台番号, prevDama: 前日差玉, targetDow: 予想対象の曜日
+function getWeekdayBonus(u, prevDama, targetDow, weekdayData){
+  if(!weekdayData || !weekdayData.taiWeekday) return 0;
+  var pattern = getDamaPattern(prevDama);
+  var dowData = weekdayData.taiWeekday[targetDow];
+  if(!dowData || !dowData[pattern] || !dowData[pattern][u]) return 0;
+  var stat = dowData[pattern][u];
+  if(stat.total < 2) return 0; // サンプル少なすぎる場合はスキップ
+  var rate = stat.hit / stat.total;
+  // 信頼度係数（サンプルが多いほど高い、最大1.0）
+  var confidence = Math.min(1.0, stat.total / 5);
+  return Math.round(rate * confidence * W.hotY * 0.8); // hotYの80%を上限
+}
+
+// 島の曜日×パターンボーナスを計算
+function getIslandWeekdayBonus(islLabel, prevAvg, targetDow, weekdayData){
+  if(!weekdayData || !weekdayData.islWeekday) return 0;
+  var pattern = getDamaPattern(prevAvg);
+  var dowData = weekdayData.islWeekday[targetDow];
+  if(!dowData || !dowData[pattern] || !dowData[pattern][islLabel]) return 0;
+  var stat = dowData[pattern][islLabel];
+  if(stat.total < 2) return 0;
+  var rate = stat.hit / stat.total;
+  var confidence = Math.min(1.0, stat.total / 4);
+  return Math.round(rate * confidence * W.hotY * 0.6);
+}
+
+// キャッシュ
+var WEEKDAY_CACHE = {built: false, data: null};
+function rebuildWeekdayCache(){
+  WEEKDAY_CACHE.data = buildWeekdayPatternData();
+  WEEKDAY_CACHE.built = true;
+}
+
+// 今日の曜日（予想対象は翌日）
+function getTomorrowDow(){
+  var d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.getDay();
+}
+
+// 台統計（学習済み係数で計算）
+
 function buildStats(overrideDB){
   const recent=overrideDB||getRecent7();
   const units=[...new Set(recent.map(r=>r.u))].sort((a,b)=>+a-+b);
@@ -875,7 +1002,7 @@ function buildStats(overrideDB){
     const hotD2=n>1&&rows[n-2].差玉>=10000;
     const evBonus=evRows.length>0&&evAvg!=null&&evAvg>5000?W.evBonus:0;
     // 学習済み係数でスコア計算
-    // 遷移ボーナス: 直近最新日に出た台の翌日に過去出た頻度
+    // 遷移ボーナス
     var transBonus=0;
     try{
       var latestDates=getDates();
@@ -889,6 +1016,21 @@ function buildStats(overrideDB){
         });
       }
     }catch(e){}
+
+    // 曜日×前日パターンボーナス
+    var weekdayBonus=0;
+    try{
+      var latestDates2=getDates();
+      if(latestDates2.length>=1&&WEEKDAY_CACHE.built){
+        var latestDate2=latestDates2[0];
+        var latestRow=getByDate(latestDate2).find(function(r){return r.u===u;});
+        if(latestRow&&isValidActual(latestRow)){
+          var tomorrowDow=getTomorrowDow();
+          weekdayBonus=getWeekdayBonus(u,latestRow.差玉,tomorrowDow,WEEKDAY_CACHE.data);
+        }
+      }
+    }catch(e){}
+
     const score=
       avg*W.avg+
       max*W.max+
@@ -898,8 +1040,9 @@ function buildStats(overrideDB){
       (hotY?W.hotY:0)+
       (hotD2?W.hotD2:0)+
       evBonus+
-      transBonus;
-    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,transBonus,rows,vals};
+      transBonus+
+      weekdayBonus;
+    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,transBonus,weekdayBonus,rows,vals};
   }).sort((a,b)=>b.score-a.score);
 }
 
@@ -916,13 +1059,30 @@ function buildIslandStats(stats){
     const trend=gs.length?Math.round(gs.reduce((s,st)=>s+st.trend,0)/gs.length):0;
     const hotYCnt=gs.filter(st=>st.hotY).length;
     // 学習済み係数で島スコア計算（台係数を流用してスケール調整）
+    // 島の曜日×前日パターンボーナス
+    var islWeekdayBonus=0;
+    try{
+      var latestDates3=getDates();
+      if(latestDates3.length>=1&&WEEKDAY_CACHE.built){
+        var latestDate3=latestDates3[0];
+        var latestRows3=getByDate(latestDate3);
+        var islRows3=latestRows3.filter(function(r){return g.units.indexOf(r.u)>=0&&isValidActual(r);});
+        if(islRows3.length){
+          var islAvg3=islRows3.reduce(function(s,r){return s+r.差玉;},0)/islRows3.length;
+          var tDow=getTomorrowDow();
+          islWeekdayBonus=getIslandWeekdayBonus(g.label,islAvg3,tDow,WEEKDAY_CACHE.data);
+        }
+      }
+    }catch(e){}
+
     const score=
       avg*(W.avg*1.2)+
       max*(W.max*0.5)+
       cnt10k*(W.cnt10k*0.6)+
       trend*(W.trend)+
       (hotYCnt>=2?W.hotY*0.6:hotYCnt===1?W.hotY*0.25:0)+
-      (evAvg!=null&&evAvg>5000?W.evBonus*0.75:0);
+      (evAvg!=null&&evAvg>5000?W.evBonus*0.75:0)+
+      islWeekdayBonus;
     const reasons=[];
     if(avg>=10000)reasons.push(`島平均+${Math.round(avg/1000)}k発の高出玉`);
     else if(avg>=5000)reasons.push(`島平均+${Math.round(avg/1000)}k発の安定プラス`);
@@ -1208,6 +1368,10 @@ function renderRank(){
     if(s.evRows>0&&s.evAvg!=null&&s.evAvg>5000)reasons.push(`イベント平均+${Math.round(s.evAvg/1000)}k発`);
     if(s.avg>=5000)reasons.push(`加重平均${fmt(s.avg)}発`);
     if(s.transBonus>5000)reasons.push('遷移パターンから翌日好調の傾向');
+    if(s.weekdayBonus>3000){
+      var dowName=WEEKDAY_NAMES[getTomorrowDow()];
+      reasons.push(dowName+'曜日に前日同パターンで好調の実績');
+    }
     html+=`<div class="rc2 ${cls}">
       <div class="rno">${i+1}</div>
       <div class="rb2">
@@ -1224,6 +1388,7 @@ function renderRank(){
           ${s.evAvg!=null?`<div class="rst">🎯平均 <b class="e">${fmt(s.evAvg)}</b></div>`:''}
           ${s.normAvg!=null?`<div class="rst">通常平均 <b>${fmt(s.normAvg)}</b></div>`:''}
           ${s.transBonus>0?`<div class="rst">🔄遷移ボーナス <b class="g">+${Math.round(s.transBonus/1000)}k</b></div>`:''}
+          ${s.weekdayBonus>0?`<div class="rst">📅曜日ボーナス <b class="g">+${Math.round(s.weekdayBonus/1000)}k</b></div>`:''}
         </div>
       </div>
     </div>`;
@@ -1666,8 +1831,9 @@ function renderVerify(){
 
 // ===== RENDER =====
 function render(){
-  // 遷移キャッシュを毎回更新（DB変化に追随）
+  // キャッシュ更新
   try{ rebuildTransCache(); }catch(e){}
+  try{ rebuildWeekdayCache(); }catch(e){}
   renderDayBtns();updateChips();
   const el=document.getElementById('content');
   if(CV==='upload')el.innerHTML=renderUpload();

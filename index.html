@@ -365,6 +365,35 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 
 /* GitHub Pages環境ではサーバー設定を非表示 */
 .server-setting-row { display: flex; }
+
+/* ===== 台詳細モーダル ===== */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);font-family:var(--fm);}
+.modal-close{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:4px;}
+.modal-close:hover{background:var(--surface);color:var(--text);}
+.modal-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.modal-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+.modal-stat-lbl{font-size:10px;color:var(--text3);margin-bottom:4px;}
+.modal-stat-val{font-family:var(--fm);font-size:16px;font-weight:600;}
+.modal-chart{margin-bottom:16px;}
+.modal-chart-title{font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.bar-date{font-family:var(--fm);font-size:10px;color:var(--text3);width:40px;flex-shrink:0;}
+.bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.bar-fill.hot{background:var(--green);}
+.bar-fill.warm{background:var(--orange);}
+.bar-fill.cold{background:var(--red);}
+.bar-fill.neutral{background:var(--text3);}
+.bar-val{font-family:var(--fm);font-size:10px;width:70px;text-align:right;flex-shrink:0;}
+.bar-val.hot{color:var(--green);}
+.bar-val.warm{color:var(--orange);}
+.bar-val.cold{color:var(--red);}
+.bar-val.neutral{color:var(--text2);}
+.bar-ev{width:6px;height:6px;border-radius:50%;background:var(--ev);flex-shrink:0;}
+.bar-ev-empty{width:6px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -1375,7 +1404,7 @@ function renderRank(){
     html+=`<div class="rc2 ${cls}">
       <div class="rno">${i+1}</div>
       <div class="rb2">
-        <div class="rhead"><span class="rdai">台 ${s.u}</span>${getBadge(i)}
+        <div class="rhead"><span class="rdai" style="cursor:pointer;" onclick="showTaiDetail('${s.u}')">台 <u>${s.u}</u></span>${getBadge(i)}
           ${s.hotY?'<span class="bdg bdg-s">直近好調</span>':''}
           ${s.evRows>0?`<span class="bdg bdg-ev">🎯 ${s.evRows}日</span>`:''}
         </div>
@@ -2106,6 +2135,87 @@ function getTomorrowPrediction(thresh){
   return {taiPred, islPred, hotToday, hotIslToday, latestDate, groups};
 }
 
+
+// ===== 台詳細モーダル =====
+function showTaiDetail(u){
+  var rows = DB.filter(function(r){ return r.u === u; }).sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+  if(!rows.length){ alert('データがありません'); return; }
+
+  // 統計計算
+  var vals = rows.map(function(r){ return r.差玉; });
+  var avg  = Math.round(vals.reduce(function(s,v){return s+v;},0) / vals.length);
+  var max  = Math.max.apply(null, vals);
+  var cnt10k = vals.filter(function(v){return v>=10000;}).length;
+  var recent = rows.slice(-3);
+  var trend = recent.length >= 2
+    ? Math.round((recent[recent.length-1].差玉 - recent[0].差玉) / (recent.length-1))
+    : 0;
+
+  // モーダルタイトル
+  document.getElementById('taiModalTitle').textContent = '台 ' + u + ' の履歴';
+
+  // 最大絶対値（バーの幅計算用）
+  var maxAbs = Math.max(Math.abs(max), Math.max.apply(null, vals.map(Math.abs)), 1);
+
+  var html = '';
+
+  // サマリー
+  html += '<div class="modal-stat-row">';
+  html += '<div class="modal-stat"><div class="modal-stat-lbl">加重平均</div><div class="modal-stat-val ' + dc(avg) + '">' + fmt(avg) + '</div></div>';
+  html += '<div class="modal-stat"><div class="modal-stat-lbl">最高差玉</div><div class="modal-stat-val hot">' + fmt(max) + '</div></div>';
+  html += '<div class="modal-stat"><div class="modal-stat-lbl">10k超え</div><div class="modal-stat-val">' + cnt10k + '/' + rows.length + '日</div></div>';
+  html += '</div>';
+
+  // トレンド
+  var trendCol = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text2)';
+  var trendMark = trend > 0 ? '↑' : trend < 0 ? '↓' : '→';
+  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">';
+  html += '<span style="font-size:11px;color:var(--text3);">直近トレンド</span>';
+  html += '<span style="font-family:var(--fm);font-size:15px;color:' + trendCol + ';font-weight:600;">' + trendMark + ' ' + fmt(trend) + '/日</span>';
+  html += '<span style="font-size:11px;color:var(--text3);margin-left:auto;">直近' + recent.length + '日の変化</span>';
+  html += '</div>';
+
+  // 棒グラフ（日別差玉）
+  html += '<div class="modal-chart">';
+  html += '<div class="modal-chart-title">日別差玉履歴</div>';
+  rows.slice().reverse().forEach(function(r){
+    var w = Math.min(100, Math.round(Math.abs(r.差玉) / maxAbs * 100));
+    var cls = dc(r.差玉);
+    var isEvDay = isEv(r.date);
+    var dateShort = r.date.slice(5); // MM-DD
+    var dow = ['日','月','火','水','木','金','土'][new Date(r.date).getDay()];
+    html += '<div class="bar-row">';
+    html += '<div class="bar-date">' + dateShort + '<span style="color:var(--text3);font-size:9px;">(' + dow + ')</span></div>';
+    html += isEvDay ? '<div class="bar-ev" title="' + evTypeName(r.date) + '"></div>' : '<div class="bar-ev-empty"></div>';
+    html += '<div class="bar-wrap">';
+    if(r.差玉 >= 0){
+      html += '<div class="bar-fill ' + cls + '" style="width:' + w + '%;"></div>';
+    } else {
+      html += '<div style="position:absolute;right:0;top:0;height:100%;width:' + w + '%;background:var(--red);border-radius:3px;opacity:0.7;"></div>';
+    }
+    html += '</div>';
+    html += '<div class="bar-val ' + cls + '">' + fmt(r.差玉) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  html += '<div style="font-size:10px;color:var(--text3);">🟢 = イベント日</div>';
+
+  document.getElementById('taiModalContent').innerHTML = html;
+  document.getElementById('taiModal').style.display = 'flex';
+}
+
+function closeTaiModal(event){
+  if(!event || event.target === document.getElementById('taiModal')){
+    document.getElementById('taiModal').style.display = 'none';
+  }
+}
+
+// ESCキーで閉じる
+document.addEventListener('keydown', function(e){
+  if(e.key === 'Escape') closeTaiModal();
+});
+
 // 起動時の非同期初期化
 // 起動時の非同期初期化
 
@@ -2146,5 +2256,16 @@ function getTomorrowPrediction(thresh){
   render();
 })();
 </script>
+
+<!-- 台詳細モーダル -->
+<div id="taiModal" class="modal-overlay" style="display:none;" onclick="closeTaiModal(event)">
+  <div class="modal-box" id="taiModalBox">
+    <div class="modal-header">
+      <div class="modal-title" id="taiModalTitle">台 000</div>
+      <button class="modal-close" onclick="closeTaiModal()">✕</button>
+    </div>
+    <div id="taiModalContent"></div>
+  </div>
+</div>
 </body>
 </html>

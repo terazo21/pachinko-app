@@ -320,6 +320,55 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 .bar-pos{height:100%;border-radius:3px;position:absolute;left:0;}
 .bar-neg{height:100%;border-radius:3px;position:absolute;right:0;opacity:0.7;}
 .bar-val{font-family:var(--fm);font-size:10px;width:68px;text-align:right;flex-shrink:0;}
+
+/* ===== モバイル対応 ===== */
+@media (max-width: 768px){
+  .hdr{height:auto;padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .hdr-title{font-size:16px;letter-spacing:1px;}
+  .hdr-formula{display:none;}
+  .hdr-center{order:3;width:100%;font-size:10px;}
+  .today-chip,.next-chip{font-size:10px;padding:3px 8px;}
+  .main{flex-direction:column;height:auto;}
+  .sidebar{
+    width:100%;height:auto;max-height:0;overflow:hidden;
+    transition:max-height 0.3s ease;border-right:none;
+    border-bottom:1px solid var(--border);
+    flex-direction:row;flex-wrap:wrap;
+  }
+  .sidebar.open{max-height:600px;}
+  .sb-sec{padding:8px 8px 4px;min-width:140px;}
+  .sb-lbl{font-size:9px;}
+  .nb{font-size:12px;padding:8px 10px;}
+  .sb-div{display:none;}
+  .day-nav{padding:4px 8px;min-width:140px;}
+  .db{font-size:11px;padding:6px 8px;}
+  .hamburger{
+    display:flex;align-items:center;gap:6px;
+    padding:6px 14px;background:var(--surface);
+    border:1px solid var(--border2);border-radius:6px;
+    color:var(--text2);font-family:var(--fb);font-size:12px;
+    cursor:pointer;margin:8px 12px;width:calc(100% - 24px);
+  }
+  .content{padding:12px;overflow-y:auto;height:auto;}
+  .mrow{grid-template-columns:1fr 1fr;gap:8px;}
+  .mc-val{font-size:16px;}
+  .rc2{padding:10px 12px;gap:8px;}
+  .rno{font-size:22px;min-width:26px;}
+  .rdai{font-size:14px;}
+  .rstats{gap:6px;}
+  .rst{font-size:11px;}
+  .isl-pred{grid-template-columns:1fr;}
+  .isl-all-grid{grid-template-columns:1fr 1fr;}
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{font-size:11px;}
+  th,td{padding:5px 7px;}
+  .up-steps{grid-template-columns:1fr;}
+  .ak-sec{flex-wrap:wrap;}
+}
+@media (max-width: 400px){
+  .mrow{grid-template-columns:1fr;}
+  .isl-all-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>
@@ -340,9 +389,23 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   <button class="mt-btn active" id="tabDaikai" onclick="switchMachine('daikai',this)">🐟 大海物語5</button>
   <button class="mt-btn" id="tabEva" onclick="switchMachine('eva',this)">🤖 エヴァ〜はじまりの記憶〜</button>
 </div>
+<div id="mobileBanner" style="display:none;background:var(--ev-bg);border-bottom:1px solid var(--ev-border);padding:7px 14px;align-items:center;justify-content:space-between;gap:10px;">
+  <div style="font-size:12px;color:var(--ev);">📱 スマホ閲覧モード</div>
+  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
+    <span style="font-size:11px;color:var(--text2);" id="mobileBannerLabel">OFF</span>
+    <div style="position:relative;width:40px;height:22px;">
+      <input type="checkbox" id="mobileBannerCheck" onchange="toggleMobileMode(this.checked)" style="opacity:0;width:0;height:0;position:absolute;">
+      <span id="mobileBannerSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--surface2);border-radius:22px;transition:.3s;"></span>
+      <span id="mobileBannerDot" style="position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
+    </div>
+  </label>
+</div>
 
 <div class="main">
-<aside class="sidebar">
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()" style="display:none;">
+  <span id="hamburgerIcon">☰</span>&nbsp;<span id="hamburgerLabel">メニュー・日付選択</span>
+</button>
+<aside class="sidebar" id="sidebar">
   <div class="sb-sec">
     <div class="sb-lbl">データ入力</div>
     <button class="nb" onclick="sv('upload',this)"><span>📷</span>スクショ取込</button>
@@ -1585,6 +1648,54 @@ function execRetireList(){
   DB=DB.filter(function(r){return targets.indexOf(r.u)<0;});
   saveDB().then(function(){learnWeights();alert('削除完了！'+(before-DB.length)+'レコード削除しました。');CV='rank';render();});
 }
+// ===== モバイル対応 =====
+function isMobile(){ return window.innerWidth <= 768; }
+
+function toggleSidebar(){
+  var sb=document.getElementById('sidebar');
+  var icon=document.getElementById('hamburgerIcon');
+  var lbl=document.getElementById('hamburgerLabel');
+  if(!sb) return;
+  sb.classList.toggle('open');
+  var isOpen=sb.classList.contains('open');
+  if(icon) icon.textContent=isOpen?'✕':'☰';
+  if(lbl) lbl.textContent=isOpen?'閉じる':'メニュー・日付選択';
+}
+
+function initMobile(){
+  var hb=document.getElementById('hamburger');
+  if(isMobile()&&hb) hb.style.display='flex';
+  window.addEventListener('resize',function(){
+    var hb=document.getElementById('hamburger');
+    var sb=document.getElementById('sidebar');
+    if(!hb||!sb) return;
+    if(isMobile()){ hb.style.display='flex'; }
+    else{ hb.style.display='none'; sb.classList.remove('open'); }
+  });
+}
+
+// スマホモード切替バナーの更新
+function updateMobileBanner(){
+  var banner=document.getElementById('mobileBanner');
+  var check=document.getElementById('mobileBannerCheck');
+  var label=document.getElementById('mobileBannerLabel');
+  var slider=document.getElementById('mobileBannerSlider');
+  var dot=document.getElementById('mobileBannerDot');
+  if(!banner) return;
+  banner.style.display='flex';
+  if(check) check.checked=IS_MOBILE_MODE;
+  if(label) label.textContent=IS_MOBILE_MODE?'ON（Supabase読込中）':'OFF（ローカルサーバー）';
+  if(slider) slider.style.background=IS_MOBILE_MODE?'var(--ev)':'var(--surface2)';
+  if(dot) dot.style.transform=IS_MOBILE_MODE?'translateX(18px)':'translateX(0)';
+}
+
+function toggleMobileMode(enabled){
+  IS_MOBILE_MODE=enabled;
+  localStorage.setItem('mobile_mode',enabled?'1':'0');
+  updateMobileBanner();
+  loadDB().then(function(){loadWeights().then(function(){learnWeights();render();});});
+}
+
 // ===== 機種切替 =====
 function switchMachine(id, btn){
   MACHINE = id;
@@ -1668,11 +1779,20 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTaiModa
 
 // 起動時の非同期初期化
 (async()=>{
+  // GitHub Pages環境では自動的にスマホモードON
+  var isGHP=window.location.hostname.includes('github.io');
+  if(isGHP){ IS_MOBILE_MODE=true; localStorage.setItem('mobile_mode','1'); }
+  else{
+    var savedMobile=localStorage.getItem('mobile_mode');
+    if(savedMobile==='1') IS_MOBILE_MODE=true;
+  }
   await loadDB();
   await loadWeights();
   await loadApiKey();
   learnWeights();
   initPaste();
+  initMobile();
+  updateMobileBanner();
   render();
 })();
 </script>

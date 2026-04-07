@@ -2,11 +2,6 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<!-- Microsoft Authentication Library -->
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>大海物語5 予想システム v5 — エクスアリーナ東京</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -262,138 +257,69 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 .acc-bar{height:6px;border-radius:3px;background:var(--surface2);margin-top:4px;overflow:hidden;}
 .acc-fill{height:100%;border-radius:3px;}
 .acc-fill.g{background:var(--green);}.acc-fill.o{background:var(--orange);}.acc-fill.r{background:var(--red);}
-::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg2);}
 ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:3px;}
 
 .mt-btn{padding:4px 16px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--text2);font-family:var(--fb);font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.mt-btn:hover{border-color:var(--accent);color:var(--text);}
 .mt-btn.active{background:var(--accent);color:var(--bg);border-color:var(--accent);font-weight:700;}
-
-/* ===== モバイル対応 ===== */
-@media (max-width: 768px){
-  /* ヘッダー */
-  .hdr{height:auto;padding:8px 12px;flex-wrap:wrap;gap:6px;}
-  .hdr-title{font-size:16px;}
-  .hdr-formula{display:none;}
-  .hdr-center{order:3;width:100%;font-size:10px;}
-  .today-chip,.next-chip{font-size:10px;padding:3px 8px;}
-
-  /* 機種タブ */
-  .machine-tabs-row{padding:0 10px;height:auto;padding:6px 10px;flex-wrap:wrap;gap:4px;}
-  .mt-btn{font-size:11px;padding:4px 10px;}
-
-  /* レイアウト */
-  .main{flex-direction:column;height:auto;}
-
-  /* サイドバー → ドロワー */
-  .sidebar{
-    width:100%;
-    height:auto;
-    max-height:0;
-    overflow:hidden;
-    transition:max-height 0.3s ease;
-    border-right:none;
-    border-bottom:1px solid var(--border);
-    flex-direction:row;
-    flex-wrap:wrap;
-  }
-  .sidebar.open{max-height:600px;}
-  .sb-sec{padding:8px 8px 4px;min-width:140px;}
-  .sb-lbl{font-size:9px;}
-  .nb{font-size:12px;padding:8px 10px;}
-  .sb-div{display:none;}
-  .day-nav{padding:4px 8px;min-width:140px;}
-  .db{font-size:11px;padding:6px 8px;}
-
-  /* ハンバーガーボタン */
-  .hamburger{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    padding:6px 14px;
-    background:var(--surface);
-    border:1px solid var(--border2);
-    border-radius:6px;
-    color:var(--text2);
-    font-family:var(--fb);
-    font-size:12px;
-    cursor:pointer;
-    margin:8px 12px;
-    width:calc(100% - 24px);
-  }
-
-  /* コンテンツ */
-  .content{padding:12px 12px;overflow-y:auto;height:auto;}
-
-  /* メトリクスカード 2列 */
-  .mrow{grid-template-columns:1fr 1fr;gap:8px;}
-  .mc-val{font-size:16px;}
-
-  /* ランキングカード */
-  .rc2{padding:10px 12px;gap:10px;}
-  .rno{font-size:24px;min-width:28px;}
-  .rdai{font-size:14px;}
-  .rstats{gap:8px;}
-  .rst{font-size:11px;}
-
-  /* 島予想 */
-  .isl-pred{grid-template-columns:1fr;}
-  .isl-all-grid{grid-template-columns:1fr 1fr;}
-  .isl-mini{width:44px;}
-
-  /* テーブル */
-  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  table{font-size:11px;}
-  th,td{padding:6px 8px;}
-
-  /* 検証カード */
-  .vfy-grid{grid-template-columns:1fr;}
-  .vfy-summary{grid-template-columns:1fr 1fr;}
-
-  /* 取込パネル */
-  .up-steps{grid-template-columns:1fr;}
-  .up-row{flex-direction:column;}
-  .paste-zone{min-width:unset;width:100%;}
-  .ak-sec{flex-wrap:wrap;}
-}
-
-@media (max-width: 400px){
-  .mrow{grid-template-columns:1fr;}
-  .isl-all-grid{grid-template-columns:1fr;}
-}
-
-/* GitHub Pages環境ではサーバー設定を非表示 */
-.server-setting-row { display: flex; }
-
-/* ===== 台詳細モーダル ===== */
+::-webkit-scrollbar{width:10px;height:10px;}
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;}
 .modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
 .modal-title{font-size:16px;font-weight:700;color:var(--text);font-family:var(--fm);}
 .modal-close{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:4px;}
-.modal-close:hover{background:var(--surface);color:var(--text);}
 .modal-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
 .modal-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
 .modal-stat-lbl{font-size:10px;color:var(--text3);margin-bottom:4px;}
 .modal-stat-val{font-family:var(--fm);font-size:16px;font-weight:600;}
-.modal-chart{margin-bottom:16px;}
-.modal-chart-title{font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
 .bar-date{font-family:var(--fm);font-size:10px;color:var(--text3);width:40px;flex-shrink:0;}
 .bar-wrap{flex:1;height:20px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
-.bar-fill{height:100%;border-radius:3px;transition:width 0.3s;}
+.bar-fill{height:100%;border-radius:3px;}
 .bar-fill.hot{background:var(--green);}
 .bar-fill.warm{background:var(--orange);}
-.bar-fill.cold{background:var(--red);}
+.bar-fill.cold{background:var(--red);opacity:0.7;}
 .bar-fill.neutral{background:var(--text3);}
 .bar-val{font-family:var(--fm);font-size:10px;width:70px;text-align:right;flex-shrink:0;}
 .bar-val.hot{color:var(--green);}
 .bar-val.warm{color:var(--orange);}
 .bar-val.cold{color:var(--red);}
 .bar-val.neutral{color:var(--text2);}
-.bar-ev{width:6px;height:6px;border-radius:50%;background:var(--ev);flex-shrink:0;}
-.bar-ev-empty{width:6px;flex-shrink:0;}
+@media(max-width:768px){
+  .hdr{height:auto;padding:8px 12px;flex-wrap:wrap;gap:6px;}
+  .hdr-title{font-size:16px;}
+  .hdr-formula{display:none;}
+  .hdr-center{order:3;width:100%;}
+  .main{flex-direction:column;height:auto;}
+  .sidebar{width:100%;height:auto;max-height:0;overflow:hidden;transition:max-height 0.3s;border-right:none;border-bottom:1px solid var(--border);flex-direction:row;flex-wrap:wrap;}
+  .sidebar.open{max-height:600px;}
+  .sb-sec{padding:8px 8px 4px;min-width:140px;}
+  .nb{font-size:12px;padding:8px 10px;}
+  .sb-div{display:none;}
+  .content{padding:12px;overflow-y:auto;height:auto;}
+  .mrow{grid-template-columns:1fr 1fr;gap:8px;}
+  .isl-all-grid{grid-template-columns:1fr 1fr;}
+  .tw{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{font-size:11px;}
+  .hamburger{display:flex;align-items:center;gap:6px;padding:6px 14px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text2);font-family:var(--fb);font-size:12px;cursor:pointer;margin:8px 12px;width:calc(100% - 24px);}
+}
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal-box{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto;padding:20px;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);font-family:var(--fm);}
+.modal-close{background:transparent;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:4px 8px;border-radius:4px;}
+.modal-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.modal-stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;text-align:center;}
+.modal-stat-lbl{font-size:10px;color:var(--text3);margin-bottom:4px;}
+.modal-stat-val{font-family:var(--fm);font-size:15px;font-weight:600;}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.bar-date{font-family:var(--fm);font-size:10px;color:var(--text3);width:48px;flex-shrink:0;}
+.bar-wrap{flex:1;height:18px;background:var(--surface2);border-radius:3px;overflow:hidden;position:relative;}
+.bar-pos{height:100%;border-radius:3px;position:absolute;left:0;}
+.bar-neg{height:100%;border-radius:3px;position:absolute;right:0;opacity:0.7;}
+.bar-val{font-family:var(--fm);font-size:10px;width:68px;text-align:right;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -401,7 +327,7 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 <header class="hdr">
   <div>
     <div class="hdr-title" id="hdrTitle">大海物語5 予想システム</div>
-    <div class="hdr-sub">エクスアリーナ東京 / 4円パチンコ</div>
+    <div class="hdr-sub">エクスアリーナ東京 / 4円パチンコ / 台556〜585</div>
   </div>
   <div class="hdr-center">
     <div class="today-chip" id="todayChip"></div>
@@ -409,31 +335,14 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   </div>
   <div class="hdr-formula" id="hdrFormula">差玉 = <b>大当り×1300</b> − <b>(累計ST−確変×48−初当り×100)×13</b></div>
 </header>
-<div class="machine-tabs-row" style="display:flex;gap:6px;padding:0 20px;background:var(--bg2);border-bottom:1px solid var(--border);height:38px;align-items:center;">
+<div style="display:flex;gap:6px;padding:0 14px;background:var(--bg2);border-bottom:1px solid var(--border);height:38px;align-items:center;">
   <span style="font-size:11px;color:var(--text3);">機種:</span>
   <button class="mt-btn active" id="tabDaikai" onclick="switchMachine('daikai',this)">🐟 大海物語5</button>
   <button class="mt-btn" id="tabEva" onclick="switchMachine('eva',this)">🤖 エヴァ〜はじまりの記憶〜</button>
 </div>
-<!-- スマホ閲覧モード切替バナー（常時表示） -->
-<div id="mobileBanner" style="display:none;background:var(--ev-bg);border-bottom:1px solid var(--ev-border);padding:8px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-  <div style="font-size:12px;color:var(--ev);">📱 スマホ閲覧モード</div>
-  <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-    <span style="font-size:11px;color:var(--text2);" id="mobileBannerLabel">OFF（ローカルサーバー）</span>
-    <div style="position:relative;width:40px;height:22px;">
-      <input type="checkbox" id="mobileBannerCheck" onchange="toggleMobileMode(this.checked)"
-        style="opacity:0;width:0;height:0;position:absolute;">
-      <span id="mobileBannerSlider" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--surface2);border-radius:22px;transition:.3s;"></span>
-      <span id="mobileBannerDot" style="position:absolute;content:'';height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;"></span>
-    </div>
-  </label>
-  <button onclick="sv('upload',null)" style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid var(--ev-border);background:transparent;color:var(--ev);cursor:pointer;">設定</button>
-</div>
 
 <div class="main">
-<button class="hamburger" id="hamburger" onclick="toggleSidebar()" style="display:none;">
-  <span id="hamburgerIcon">☰</span> <span id="hamburgerLabel">メニュー・日付選択</span>
-</button>
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar">
   <div class="sb-sec">
     <div class="sb-lbl">データ入力</div>
     <button class="nb" onclick="sv('upload',this)"><span>📷</span>スクショ取込</button>
@@ -463,138 +372,46 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 </div>
 
 <script>
-// ===== Supabase設定（スマホ閲覧用） =====
-const SUPABASE_URL = 'https://fkqnasfjghwkauypogji.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcW5hc2ZqZ2h3a2F1eXBvZ2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNjE3NDcsImV4cCI6MjA5MDczNzc0N30.JAPUActmfOM3L62simTf-puABS2KrDMiIp8AaIRqt94';
-const SUPABASE_REST = SUPABASE_URL + '/rest/v1/pachinko_data';
-
-async function readSupabase(machine){
-  try{
-    const url = SUPABASE_REST + '?machine=eq.' + machine + '&select=data,weights';
-    const res = await fetch(url, {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-      }
-    });
-    if(!res.ok){ console.warn('[Supabase] read failed:', res.status); return null; }
-    const rows = await res.json();
-    if(!rows || !rows.length) return null;
-    return rows[0];
-  }catch(e){ console.warn('[Supabase] error:', e); return null; }
-}
-
-// ===== Microsoft Graph API設定（未使用・互換性のため残す） =====
-const GRAPH_CONFIG = {
-  // Microsoft公開クライアントID（個人用OneDrive対応・アプリ登録不要）
-  clientId: localStorage.getItem('graph_client_id') || 'd3590ed6-52b3-4102-aeff-aad2292ab01c',
-  authority: 'https://login.microsoftonline.com/consumers',
-  redirectUri: 'https://terazo21.github.io/pachinko-app/',
-};
-const GRAPH_SCOPES = ['Files.Read'];
-const ONEDRIVE_BASE = 'https://graph.microsoft.com/v1.0/me/drive';
-var ONEDRIVE_DATA_PATH = localStorage.getItem('onedrive_data_path') || '/ドキュメント/アプリ/daikai5_app/data';
-let msalInstance = null;
-let graphToken = null;
-let IS_MOBILE_MODE = false;
-
-function initMsal(){
-  if(typeof msal === 'undefined'){ console.warn('[MSAL] not loaded'); return; }
-  try{
-    msalInstance = new msal.PublicClientApplication({
-      auth:{ clientId:GRAPH_CONFIG.clientId, authority:GRAPH_CONFIG.authority, redirectUri:GRAPH_CONFIG.redirectUri },
-      cache:{ cacheLocation:'localStorage' }
-    });
-    msalInstance.handleRedirectPromise().then(function(resp){
-      if(resp && resp.accessToken){
-        graphToken = resp.accessToken;
-        console.log('[MSAL] redirect login success');
-        // ログイン成功 → IS_MOBILE_MODEをONにしてデータ読込
-        IS_MOBILE_MODE = true;
-        localStorage.setItem('mobile_mode','1');
-        localStorage.removeItem('msal_redirect_pending');
-        updateMobileBanner();
-        loadDB().then(function(){
-          loadWeights().then(function(){ learnWeights(); render(); });
-        });
-      }
-    }).catch(function(e){ console.warn('[MSAL] redirect error:',e); });
-  }catch(e){ console.warn('[MSAL] init error:',e); }
-}
-
-async function getGraphToken(){
-  if(!msalInstance) return null;
-  const accounts=msalInstance.getAllAccounts();
-  if(!accounts.length){
-    // リダイレクト方式（ポップアップ不要・スマホ対応）
-    localStorage.setItem('msal_redirect_pending','1');
-    localStorage.setItem('msal_redirect_return', window.location.href);
-    await msalInstance.loginRedirect({scopes:GRAPH_SCOPES, prompt:'select_account'});
-    return null; // リダイレクト後に処理される
-  }
-  try{
-    const r=await msalInstance.acquireTokenSilent({scopes:GRAPH_SCOPES,account:accounts[0]});
-    return r.accessToken;
-  }catch(e){
-    // サイレント失敗時もリダイレクト
-    localStorage.setItem('msal_redirect_pending','1');
-    await msalInstance.acquireTokenRedirect({scopes:GRAPH_SCOPES,account:accounts[0]});
-    return null;
-  }
-}
-
-async function readOneDriveJson(filename){
-  const token=await getGraphToken();
-  if(!token) return null;
-  const path=ONEDRIVE_DATA_PATH+'/'+filename;
-  const url=ONEDRIVE_BASE+'/root:'+encodeURIComponent(path)+':/content';
-  try{
-    const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
-    if(!res.ok){ console.warn('[Graph] '+filename+': '+res.status); return null; }
-    return await res.json();
-  }catch(e){ console.warn('[Graph] read error:',e); return null; }
-}
 
 // ===== 機種定義 =====
-const MACHINES = {
-  daikai: {
-    id: 'daikai', name: '大海物語5',
-    formula: '差玉 = <b>大当り\u00d71300</b> \u2212 <b>(累計ST\u2212確変\u00d748\u2212初当り\u00d7100)\u00d713</b>',
-    dataEp: '/data', wEp: '/weights', csv: 'daikai5.csv'
-  },
-  eva: {
-    id: 'eva', name: 'エヴァ〜はじまりの記憶〜',
-    formula: '差玉 = <b>(確変\u00d71120)+(初当り\u00d7280)</b> \u2212 <b>(累計ST\u2212確変\u00d731\u2212初当り\u00d7100)\u00d716</b>',
-    dataEp: '/data_eva', wEp: '/weights_eva', csv: 'eva.csv'
-  }
+const MACHINES={
+  daikai:{id:'daikai',name:'大海物語5',formula:'差玉 = <b>大当り\u00d71300</b> \u2212 <b>(累計ST\u2212確変\u00d748\u2212初当り\u00d7100)\u00d713</b>',dataEp:'/data',wEp:'/weights',csv:'daikai5.csv'},
+  eva:{id:'eva',name:'エヴァ〜はじまりの記憶〜',formula:'差玉 = <b>(確変\u00d71120)+(初当り\u00d7280)</b> \u2212 <b>(累計ST\u2212確変\u00d731\u2212初当り\u00d7100)\u00d716</b>',dataEp:'/data_eva',wEp:'/weights_eva',csv:'eva.csv'},
 };
-let MACHINE = 'daikai';
-function getMC() { return MACHINES[MACHINE]; }
+let MACHINE='daikai';
+function getMC(){return MACHINES[MACHINE];}
+
+// ===== Supabase設定 =====
+const SUPABASE_URL='https://fkqnasfjghwkauypogji.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrcW5hc2ZqZ2h3a2F1eXBvZ2ppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNjE3NDcsImV4cCI6MjA5MDczNzc0N30.JAPUActmfOM3L62simTf-puABS2KrDMiIp8AaIRqt94';
+const SUPABASE_REST=SUPABASE_URL+'/rest/v1/pachinko_data';
+async function readSupabase(machine){
+  try{
+    var res=await fetch(SUPABASE_REST+'?machine=eq.'+machine+'&select=data,weights',{
+      headers:{apikey:SUPABASE_KEY,Authorization:'Bearer '+SUPABASE_KEY}
+    });
+    if(!res.ok) return null;
+    var rows=await res.json();
+    return rows&&rows.length?rows[0]:null;
+  }catch(e){return null;}
+}
 
 // ===== 機種別イベント日 =====
-const EV_RULES = {
-  daikai: {
-    check: function(d) { return d===5||d===15||d===25||d===11||d===22; },
-    name:  function(d) { return (d===11||d===22) ? 'ゾロ目' : '5のつく日'; },
-    desc:  '5のつく日（5・15・25日）＋ゾロ目（11・22日）'
-  },
-  eva: {
-    check: function(d) { return d===10||d===20||d===30; },
-    name:  function(d) { return '0のつく日'; },
-    desc:  '0のつく日（10・20・30日）'
-  }
+const EV_RULES={
+  daikai:{check:function(d){return d===5||d===15||d===25||d===11||d===22;},name:function(d){return(d===11||d===22)?'ゾロ目':'5のつく日';},desc:'5のつく日(5・15・25日)+ゾロ目(11・22日)'},
+  eva:{check:function(d){return d===10||d===20||d===30;},name:function(d){return '0のつく日';},desc:'0のつく日(10・20・30日)'},
 };
 
 // ===== 機種別差玉計算 =====
-function calcDamaDaikai(total, cum, kaku, hatsu) {
-  return Math.round(total*1300 - (cum - (kaku*48) - (hatsu*100)) * 13);
-}
-function calcDamaEva(total, cum, kaku, hatsu) {
-  return Math.round((kaku*1120) + (hatsu*280) - (cum - (kaku*31) - (hatsu*100)) * 16);
-}
+function calcDamaDaikai(total,cum,kaku,hatsu){return Math.round(total*1300-(cum-(kaku*48)-(hatsu*100))*13);}
+function calcDamaEva(total,cum,kaku,hatsu){return Math.round((kaku*1120)+(hatsu*280)-(cum-(kaku*31)-(hatsu*100))*16);}
 
-// ===== エヴァ初期データ（3/25=6日前） =====
-const INIT_EVA = [
+// ===== スマホ閲覧モード =====
+var IS_MOBILE_MODE=false;
+function getApiBase(){return localStorage.getItem('pachinko_server')||'http://localhost:5173';}
+
+// ===== エヴァ初期データ =====
+const INIT_EVA=[
   {u:"466",総:50,累:3582,確:44,初:6,最大:34430},
   {u:"467",総:53,累:3256,確:48,初:5,最大:45150},
   {u:"468",総:7, 累:1810,確:4, 初:3,最大:4100},
@@ -609,31 +426,22 @@ const INIT_EVA = [
   {u:"477",総:51,累:4142,確:40,初:11,最大:38300},
   {u:"478",総:21,累:2764,確:16,初:5,最大:13680},
   {u:"479",総:35,累:3488,確:30,初:5,最大:18570},
-  {u:"480",総:2, 累:2598,確:0, 初:2,最大:0}
-].map(function(r){
-  var d = new Date(); d.setDate(d.getDate()-7);
-  var ds = d.toISOString().slice(0,10);
-  return Object.assign({}, r, {date: ds, 差玉: calcDamaEva(r.総,r.累,r.確,r.初)});
-});
+  {u:"480",総:2, 累:2598,確:0, 初:2,最大:0},
+].map(function(r){var d=new Date();d.setDate(d.getDate()-7);return Object.assign({},r,{date:d.toISOString().slice(0,10),差玉:calcDamaEva(r.総,r.累,r.確,r.初)});});
 
 // ===== イベント日判定 =====
 // 5のつく日（5・15・25）＋ゾロ目（11・22）
 function isEv(ds){
   var d=new Date(ds).getDate();
-  var rule=EV_RULES[MACHINE]||EV_RULES.daikai;
-  return rule.check(d);
+  return(EV_RULES[MACHINE]||EV_RULES.daikai).check(d);
 }
 function evTypeName(ds){
   var d=new Date(ds).getDate();
-  var rule=EV_RULES[MACHINE]||EV_RULES.daikai;
-  return rule.name(d);
+  return(EV_RULES[MACHINE]||EV_RULES.daikai).name(d);
 }
-function evDesc(){
-  return (EV_RULES[MACHINE]||EV_RULES.daikai).desc;
-}
+function evDesc(){return(EV_RULES[MACHINE]||EV_RULES.daikai).desc;}
 function nextEvInfo(){
-  var t=new Date();
-  var rule=EV_RULES[MACHINE]||EV_RULES.daikai;
+  var t=new Date(),rule=EV_RULES[MACHINE]||EV_RULES.daikai;
   for(var i=0;i<=35;i++){
     var d=new Date(t);d.setDate(d.getDate()+i);
     var day=d.getDate();
@@ -669,10 +477,7 @@ const INIT=[
 ];
 
 // ===== DB (ローカルファイル永続化) =====
-// サーバーアドレス（localStorageから読み込み、なければlocalhost）
-function getApiBase(){
-  return localStorage.getItem('pachinko_server')||'http://localhost:5173';
-}
+// API_BASE -> getApiBase()に移行
 let DB=[];
 let DB_LOADED=false;
 
@@ -680,35 +485,23 @@ async function loadDB(){
   var calcFn=MACHINE==='eva'?calcDamaEva:calcDamaDaikai;
   var src=MACHINE==='eva'?INIT_EVA:INIT;
   if(IS_MOBILE_MODE){
-    var row = await readSupabase(MACHINE);
-    if(row && Array.isArray(row.data) && row.data.length > 0){
-      DB = row.data; DB_LOADED = true;
-      console.log('[Supabase] Loaded ' + DB.length + ' records');
-      return;
-    }
-    console.warn('[Supabase] read failed, using initial data');
-    DB = src.map(r=>Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)}));
+    var row=await readSupabase(MACHINE);
+    if(row&&Array.isArray(row.data)&&row.data.length>0){DB=row.data;DB_LOADED=true;return;}
+    DB=src.map(function(r){return Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)});});
     return;
   }
-  var ep=getMC().dataEp;
   try{
-    const res=await fetch(getApiBase()+ep);
-    if(res.ok){const data=await res.json();if(Array.isArray(data)&&data.length>0){DB=data;DB_LOADED=true;return;}}
+    var res=await fetch(getApiBase()+getMC().dataEp);
+    if(res.ok){var data=await res.json();if(Array.isArray(data)&&data.length>0){DB=data;DB_LOADED=true;return;}}
   }catch(e){console.warn('[DB] Server not reachable');}
-  DB=src.map(r=>Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)}));DB_LOADED=false;
-  await saveDB();
+  DB=src.map(function(r){return Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)});});
+  DB_LOADED=false;await saveDB();
 }
 
 async function saveDB(){
   try{
-    await fetch(`${getApiBase()}`+getMC().dataEp,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(DB)
-    });
-  }catch(e){
-    console.warn('[DB] Could not save to local file (server offline?)');
-  }
+    await fetch(getApiBase()+getMC().dataEp,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DB)});
+  }catch(e){console.warn('[DB] save failed');}
 }
 
 function clearDB(){if(confirm('全データを削除しますか？')){DB=[];saveDB().then(()=>render());}}
@@ -716,15 +509,15 @@ function resetDB(){
   if(confirm('初期データ（6日分）にリセットしますか？')){
     var calcFn=MACHINE==='eva'?calcDamaEva:calcDamaDaikai;
     var src=MACHINE==='eva'?INIT_EVA:INIT;
-    DB=src.map(r=>Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)}));
-    saveDB().then(()=>render());
+    DB=src.map(function(r){return Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)});});
+    saveDB().then(function(){render();});
   }
 }
 function exportDB(){
   const csv=['\uFEFF日付,種別,台番号,総大当り,累計ST,確変,初当り,最大持玉,差玉推定',
     ...DB.map(r=>`${r.date},${isEv(r.date)?evTypeName(r.date):'通常'},${r.u},${r.総},${r.累},${r.確},${r.初},${r.最大},${r.差玉}`)
   ].join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=getMC().csv;a.click();
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='daikai5.csv';a.click();
 }
 function getDates(){return[...new Set(DB.map(r=>r.date))].sort().reverse();}
 function getByDate(d){return DB.filter(r=>r.date===d);}
@@ -734,7 +527,25 @@ function getRecent7(){const c=new Date();c.setDate(c.getDate()-7);return DB.filt
 function isValidActual(r){return!(r.累<=500&&r.総===0);}
 
 // ===== 島グループ定義 =====
+// エヴァの固定島グループ定義（3台×6島）
+const EVA_GROUPS=[
+  {label:'427〜429番台',start:427,units:['427','428','429']},
+  {label:'430〜432番台',start:430,units:['430','431','432']},
+  {label:'433〜435番台',start:433,units:['433','434','435']},
+  {label:'466〜468番台',start:466,units:['466','467','468']},
+  {label:'469〜471番台',start:469,units:['469','470','471']},
+  {label:'472〜474番台',start:472,units:['472','473','474']},
+];
+
 function buildGroups(units){
+  // エヴァは固定グループを使用
+  if(MACHINE==='eva'){
+    var dbUnits=new Set(units);
+    return EVA_GROUPS.map(function(g){
+      var u=g.units.filter(function(u){return dbUnits.has(u);});
+      return {label:g.label,start:g.start,units:u.length?u:g.units};
+    });
+  }
   const sorted=units.slice().sort((a,b)=>+a-+b);
   const mn=+sorted[0],mx=+sorted[sorted.length-1];
   const groups=[];
@@ -760,27 +571,18 @@ const DEFAULT_W={
 let W={...DEFAULT_W};
 
 async function loadWeights(){
-  var wfname=MACHINE==='eva'?'eva_weights.json':'daikai5_weights.json';
   if(IS_MOBILE_MODE){
-    var row = await readSupabase(MACHINE);
-    if(row && row.weights && Object.keys(row.weights).length > 0)
-      W = Object.assign({}, DEFAULT_W, row.weights);
-    else W = Object.assign({}, DEFAULT_W);
+    var row=await readSupabase(MACHINE);
+    W=row&&row.weights&&Object.keys(row.weights).length?Object.assign({},DEFAULT_W,row.weights):Object.assign({},DEFAULT_W);
     return;
   }
   try{
-    const res=await fetch(getApiBase()+getMC().wEp);
-    if(res.ok){const s=await res.json();if(s&&Object.keys(s).length>0)W=Object.assign({},DEFAULT_W,s);else W=Object.assign({},DEFAULT_W);}
+    var res=await fetch(getApiBase()+getMC().wEp);
+    if(res.ok){var s=await res.json();if(s&&Object.keys(s).length>0)W=Object.assign({},DEFAULT_W,s);else W=Object.assign({},DEFAULT_W);}
   }catch(e){W=Object.assign({},DEFAULT_W);}
 }
 async function saveWeights(){
-  try{
-    await fetch(`${getApiBase()}`+getMC().wEp,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(W)
-    });
-  }catch(e){}
+  try{await fetch(getApiBase()+getMC().wEp,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(W)});}catch(e){}
 }
 function resetWeights(){W={...DEFAULT_W};saveWeights();}
 
@@ -878,134 +680,7 @@ function learnWeights(){
   return{corrAvg,corrMax,corrCnt10k,corrRate10k,corrTrend,corrHotY,corrHotD2,samples:samples.length};
 }
 
-// ===== 曜日×パターン分析 =====
-// 曜日番号: 0=日, 1=月, 2=火, 3=水, 4=木, 5=金, 6=土
-const WEEKDAY_NAMES = ['日','月','火','水','木','金','土'];
-
-function getDayOfWeek(dateStr){
-  return new Date(dateStr).getDay();
-}
-
-// 差玉をパターン分類
-function getDamaPattern(dama){
-  if(dama >= 10000) return 'hot';      // 10k+
-  if(dama >= 5000)  return 'warm';     // 5k+
-  if(dama >= 0)     return 'neutral';  // プラス
-  return 'cold';                        // マイナス
-}
-
-// 曜日×前日パターン → 翌日結果の遷移を集計
-function buildWeekdayPatternData(){
-  var dates = getDates().slice().reverse(); // 古い順
-  // taiWeekday[曜日][前日パターン][台番号] = {hit:0, total:0}
-  var taiWeekday = {};
-  // islWeekday[曜日][前日島パターン][島ラベル] = {hit:0, total:0}
-  var islWeekday = {};
-
-  for(var i = 0; i < dates.length - 1; i++){
-    var today     = dates[i];
-    var tomorrow  = dates[i+1];
-    var todayRows    = getByDate(today);
-    var tomorrowRows = getByDate(tomorrow);
-    if(!todayRows.length || !tomorrowRows.length) continue;
-
-    var dow = getDayOfWeek(tomorrow); // 翌日の曜日
-    if(!taiWeekday[dow]) taiWeekday[dow] = {};
-    if(!islWeekday[dow]) islWeekday[dow] = {};
-
-    // 台レベル
-    todayRows.forEach(function(tr){
-      if(!isValidActual(tr)) return;
-      var pattern = getDamaPattern(tr.差玉);
-      var key = pattern;
-      if(!taiWeekday[dow][key]) taiWeekday[dow][key] = {};
-      if(!taiWeekday[dow][key][tr.u]) taiWeekday[dow][key][tr.u] = {hit:0, total:0};
-
-      // 翌日の同台の結果
-      var nextRow = tomorrowRows.find(function(r){ return r.u === tr.u; });
-      if(nextRow && isValidActual(nextRow)){
-        taiWeekday[dow][key][tr.u].total++;
-        if(nextRow.差玉 >= 10000) taiWeekday[dow][key][tr.u].hit++;
-      }
-    });
-
-    // 島レベル
-    var units = todayRows.map(function(r){ return r.u; });
-    var groups = buildGroups(units);
-    function getIslLabel(u){
-      for(var g=0;g<groups.length;g++){
-        if(groups[g].units.indexOf(u)>=0) return groups[g].label;
-      }
-      return null;
-    }
-
-    // 今日の島ごとの平均差玉
-    groups.forEach(function(g){
-      var gRows = todayRows.filter(function(r){ return g.units.indexOf(r.u)>=0 && isValidActual(r); });
-      if(!gRows.length) return;
-      var avg = gRows.reduce(function(s,r){return s+r.差玉;},0)/gRows.length;
-      var pattern = getDamaPattern(avg);
-      var key = pattern;
-      if(!islWeekday[dow][key]) islWeekday[dow][key] = {};
-      if(!islWeekday[dow][key][g.label]) islWeekday[dow][key][g.label] = {hit:0, total:0};
-
-      // 翌日の同島の結果
-      var nextRows = tomorrowRows.filter(function(r){ return g.units.indexOf(r.u)>=0 && isValidActual(r); });
-      if(nextRows.length){
-        var nextAvg = nextRows.reduce(function(s,r){return s+r.差玉;},0)/nextRows.length;
-        islWeekday[dow][key][g.label].total++;
-        if(nextAvg >= 10000) islWeekday[dow][key][g.label].hit++;
-      }
-    });
-  }
-
-  return {taiWeekday, islWeekday};
-}
-
-// 台の曜日×パターンボーナスを計算
-// u: 台番号, prevDama: 前日差玉, targetDow: 予想対象の曜日
-function getWeekdayBonus(u, prevDama, targetDow, weekdayData){
-  if(!weekdayData || !weekdayData.taiWeekday) return 0;
-  var pattern = getDamaPattern(prevDama);
-  var dowData = weekdayData.taiWeekday[targetDow];
-  if(!dowData || !dowData[pattern] || !dowData[pattern][u]) return 0;
-  var stat = dowData[pattern][u];
-  if(stat.total < 2) return 0; // サンプル少なすぎる場合はスキップ
-  var rate = stat.hit / stat.total;
-  // 信頼度係数（サンプルが多いほど高い、最大1.0）
-  var confidence = Math.min(1.0, stat.total / 5);
-  return Math.round(rate * confidence * W.hotY * 0.8); // hotYの80%を上限
-}
-
-// 島の曜日×パターンボーナスを計算
-function getIslandWeekdayBonus(islLabel, prevAvg, targetDow, weekdayData){
-  if(!weekdayData || !weekdayData.islWeekday) return 0;
-  var pattern = getDamaPattern(prevAvg);
-  var dowData = weekdayData.islWeekday[targetDow];
-  if(!dowData || !dowData[pattern] || !dowData[pattern][islLabel]) return 0;
-  var stat = dowData[pattern][islLabel];
-  if(stat.total < 2) return 0;
-  var rate = stat.hit / stat.total;
-  var confidence = Math.min(1.0, stat.total / 4);
-  return Math.round(rate * confidence * W.hotY * 0.6);
-}
-
-// キャッシュ
-var WEEKDAY_CACHE = {built: false, data: null};
-function rebuildWeekdayCache(){
-  WEEKDAY_CACHE.data = buildWeekdayPatternData();
-  WEEKDAY_CACHE.built = true;
-}
-
-// 今日の曜日（予想対象は翌日）
-function getTomorrowDow(){
-  var d = new Date();
-  d.setDate(d.getDate() + 1);
-  return d.getDay();
-}
-
-// 台統計（学習済み係数で計算）
-
+// ===== 台統計（学習済み係数で計算） =====
 function buildStats(overrideDB){
   const recent=overrideDB||getRecent7();
   const units=[...new Set(recent.map(r=>r.u))].sort((a,b)=>+a-+b);
@@ -1031,35 +706,6 @@ function buildStats(overrideDB){
     const hotD2=n>1&&rows[n-2].差玉>=10000;
     const evBonus=evRows.length>0&&evAvg!=null&&evAvg>5000?W.evBonus:0;
     // 学習済み係数でスコア計算
-    // 遷移ボーナス
-    var transBonus=0;
-    try{
-      var latestDates=getDates();
-      if(latestDates.length>=2){
-        var latestDate=latestDates[0];
-        var latestRows=getByDate(latestDate);
-        var hotLatest=latestRows.filter(function(r){return r.差玉>=10000&&isValidActual(r);}).map(function(r){return r.u;});
-        hotLatest.forEach(function(prev){
-          var nexts=(TRANS_CACHE.taiMatrix&&TRANS_CACHE.taiMatrix[prev])||{};
-          transBonus += (nexts[u]||0) * 1500;
-        });
-      }
-    }catch(e){}
-
-    // 曜日×前日パターンボーナス
-    var weekdayBonus=0;
-    try{
-      var latestDates2=getDates();
-      if(latestDates2.length>=1&&WEEKDAY_CACHE.built){
-        var latestDate2=latestDates2[0];
-        var latestRow=getByDate(latestDate2).find(function(r){return r.u===u;});
-        if(latestRow&&isValidActual(latestRow)){
-          var tomorrowDow=getTomorrowDow();
-          weekdayBonus=getWeekdayBonus(u,latestRow.差玉,tomorrowDow,WEEKDAY_CACHE.data);
-        }
-      }
-    }catch(e){}
-
     const score=
       avg*W.avg+
       max*W.max+
@@ -1068,10 +714,8 @@ function buildStats(overrideDB){
       trend*W.trend+
       (hotY?W.hotY:0)+
       (hotD2?W.hotD2:0)+
-      evBonus+
-      transBonus+
-      weekdayBonus;
-    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,transBonus,weekdayBonus,rows,vals};
+      evBonus;
+    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,rows,vals};
   }).sort((a,b)=>b.score-a.score);
 }
 
@@ -1088,30 +732,13 @@ function buildIslandStats(stats){
     const trend=gs.length?Math.round(gs.reduce((s,st)=>s+st.trend,0)/gs.length):0;
     const hotYCnt=gs.filter(st=>st.hotY).length;
     // 学習済み係数で島スコア計算（台係数を流用してスケール調整）
-    // 島の曜日×前日パターンボーナス
-    var islWeekdayBonus=0;
-    try{
-      var latestDates3=getDates();
-      if(latestDates3.length>=1&&WEEKDAY_CACHE.built){
-        var latestDate3=latestDates3[0];
-        var latestRows3=getByDate(latestDate3);
-        var islRows3=latestRows3.filter(function(r){return g.units.indexOf(r.u)>=0&&isValidActual(r);});
-        if(islRows3.length){
-          var islAvg3=islRows3.reduce(function(s,r){return s+r.差玉;},0)/islRows3.length;
-          var tDow=getTomorrowDow();
-          islWeekdayBonus=getIslandWeekdayBonus(g.label,islAvg3,tDow,WEEKDAY_CACHE.data);
-        }
-      }
-    }catch(e){}
-
     const score=
       avg*(W.avg*1.2)+
       max*(W.max*0.5)+
       cnt10k*(W.cnt10k*0.6)+
       trend*(W.trend)+
       (hotYCnt>=2?W.hotY*0.6:hotYCnt===1?W.hotY*0.25:0)+
-      (evAvg!=null&&evAvg>5000?W.evBonus*0.75:0)+
-      islWeekdayBonus;
+      (evAvg!=null&&evAvg>5000?W.evBonus*0.75:0);
     const reasons=[];
     if(avg>=10000)reasons.push(`島平均+${Math.round(avg/1000)}k発の高出玉`);
     else if(avg>=5000)reasons.push(`島平均+${Math.round(avg/1000)}k発の安定プラス`);
@@ -1129,7 +756,7 @@ let CV='rank',CD=null,FM='all',SK2='差玉',SA=false,PB=[],AK='';
 
 async function loadApiKey(){
   try{
-    const res=await fetch(`${getApiBase()}/config`);
+    const res=await fetch(getApiBase()+'/config');
     if(res.ok){
       const cfg=await res.json();
       if(cfg.apiKey){AK=cfg.apiKey;}
@@ -1139,7 +766,7 @@ async function loadApiKey(){
 
 async function saveApiKey(key){
   try{
-    await fetch(`${getApiBase()}/config`,{
+    await fetch(getApiBase()+'/config',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({apiKey:key})
@@ -1288,34 +915,6 @@ function renderUpload(){
       <div id="akSaveMsg" style="font-size:11px;color:var(--text3);width:100%;margin-top:2px;">${AK?'✓ APIキーは保存済みです（次回起動時も自動で読み込まれます）':'APIキーを入力して「保存」を押すと次回から自動入力されます'}</div>
       <span class="ak-note">※ data/daikai5_config.json に保存されます / 取得: console.anthropic.com（約2〜4円/枚）</span>
     </div>
-    <div class="ak-sec" style="margin-top:8px;">
-      <span class="ak-lbl">🌐 サーバーアドレス</span>
-      <input class="ak-inp" type="text" id="serverInp" placeholder="http://localhost:5173" value="${getApiBase()}" style="font-size:11px;"/>
-      <button class="bsm" onclick="onSaveServer()" style="white-space:nowrap;padding:5px 12px;">💾 保存</button>
-      <div id="serverMsg" style="font-size:11px;color:var(--text3);width:100%;margin-top:2px;">スマホで使う場合: http://PCのIPアドレス:5173 に変更（例: http://192.168.1.5:5173）</div>
-      <span class="ak-note">※ ブラウザのlocalStorageに保存されます。PCからは変更不要です。</span>
-    </div>
-    <div class="ak-sec" style="margin-top:8px;background:var(--ev-bg);border-color:var(--ev-border);">
-      <span class="ak-lbl" style="color:var(--ev);">📱 スマホ閲覧モード（Microsoft Graph API）</span>
-      <div style="display:flex;align-items:center;gap:10px;width:100%;margin-top:4px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:var(--text);">
-          <input type="checkbox" id="mobileMode" onchange="toggleMobileMode(this.checked)" ${IS_MOBILE_MODE?"checked":""} style="width:16px;height:16px;">
-          OneDriveから直接読み込む（スマホ・外出先で使用時にON）
-        </label>
-      </div>
-      <input class="ak-inp" type="text" id="onedrivePath"
-        placeholder="/ドキュメント/アプリ/daikai5_app/data"
-        value="${ONEDRIVE_DATA_PATH||'/ドキュメント/アプリ/daikai5_app/data'}"
-        style="margin-top:6px;"
-        oninput="ONEDRIVE_DATA_PATH=this.value;localStorage.setItem('onedrive_data_path',this.value)"/>
-      <div style="font-size:11px;color:var(--text2);width:100%;margin-top:2px;">OneDrive内のdataフォルダのパス（上記のまま変更不要な場合が多いです）</div>
-      <div id="mobileModeMsg" style="font-size:11px;color:var(--text3);width:100%;margin-top:4px;"></div>
-      <span class="ak-note">※ JSONBin.ioを使用。ログイン不要・APIキーのみで動作します</span>
-      <div style="display:flex;gap:8px;margin-top:6px;width:100%;">
-        <input class="ak-inp" type="text" id="clientIdInp" placeholder="Azure Client ID" value="${GRAPH_CONFIG.clientId!=='YOUR_CLIENT_ID'?GRAPH_CONFIG.clientId:''}"（xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx）" style="flex:1;"/>
-        <button class="bsm" onclick="saveClientId()" style="padding:5px 12px;white-space:nowrap;">💾 保存</button>
-      </div>
-    </div>
     <div class="up-steps">
       <div class="up-step"><div class="step-n">01</div><div class="step-l"><b>start_server.bat を起動</b><br>黒い画面が出ればOK（初回はinstall_and_run.bat）</div></div>
       <div class="up-step"><div class="step-n">02</div><div class="step-l"><b>対象日＋APIキーを入力</b><br>スクショの日付とAPIキーを設定</div></div>
@@ -1347,7 +946,7 @@ function renderUpload(){
     <button class="bsm" onclick="exportDB()">CSVエクスポート</button>
     <button class="bsm" onclick="resetDB()">初期データに戻す</button>
     <button class="bsm d" onclick="clearDB()">全削除</button>
-    <button class="bsm" onclick="sv('retire',this)" style="background:var(--orange);color:var(--bg);border-color:var(--orange);">🗑 廃番削除</button>
+    <button class="bsm" onclick="sv('retire',this)" style="margin-top:4px;background:rgba(255,100,0,0.15);border-color:var(--orange);color:var(--orange);">廃番削除</button>
     <span class="dc">${DB.length}件 / ${dates.length}日分（イベント日: ${[...new Set(DB.filter(r=>isEv(r.date)).map(r=>r.date))].length}日）</span>
   </div>
   <div class="tw"><table>
@@ -1397,11 +996,6 @@ function renderRank(){
     if(s.max>=20000)reasons.push(`最大+${Math.round(s.max/1000)}k発の爆発実績`);
     if(s.evRows>0&&s.evAvg!=null&&s.evAvg>5000)reasons.push(`イベント平均+${Math.round(s.evAvg/1000)}k発`);
     if(s.avg>=5000)reasons.push(`加重平均${fmt(s.avg)}発`);
-    if(s.transBonus>5000)reasons.push('遷移パターンから翌日好調の傾向');
-    if(s.weekdayBonus>3000){
-      var dowName=WEEKDAY_NAMES[getTomorrowDow()];
-      reasons.push(dowName+'曜日に前日同パターンで好調の実績');
-    }
     html+=`<div class="rc2 ${cls}">
       <div class="rno">${i+1}</div>
       <div class="rb2">
@@ -1417,8 +1011,6 @@ function renderRank(){
           <div class="rst">トレンド <b class="${s.trend>=0?'g':'r'}">${fmt(s.trend)}</b></div>
           ${s.evAvg!=null?`<div class="rst">🎯平均 <b class="e">${fmt(s.evAvg)}</b></div>`:''}
           ${s.normAvg!=null?`<div class="rst">通常平均 <b>${fmt(s.normAvg)}</b></div>`:''}
-          ${s.transBonus>0?`<div class="rst">🔄遷移ボーナス <b class="g">+${Math.round(s.transBonus/1000)}k</b></div>`:''}
-          ${s.weekdayBonus>0?`<div class="rst">📅曜日ボーナス <b class="g">+${Math.round(s.weekdayBonus/1000)}k</b></div>`:''}
         </div>
       </div>
     </div>`;
@@ -1471,31 +1063,6 @@ function renderIsland(){
   html+=`</div>`;
 
   // 全島一覧
-
-  // --- 遷移パターンから明日のおすすめ島 ---
-  var pred = getTomorrowPrediction(10000);
-  if(pred.hotIslToday && pred.hotIslToday.length){
-    html += '<div style="background:var(--ev-bg);border:1px solid var(--ev-border);border-radius:10px;padding:14px 18px;margin-bottom:16px;">';
-    html += '<div style="font-size:12px;font-weight:500;color:var(--ev);margin-bottom:8px;">🔄 遷移パターンから予測：明日のおすすめ島</div>';
-    html += '<div style="font-size:11px;color:var(--text2);margin-bottom:10px;">今日出た島: ';
-    pred.hotIslToday.forEach(function(isl){ html += '<span style="background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.25);border-radius:4px;padding:1px 7px;font-size:11px;margin-right:4px;">'+isl+'</span>'; });
-    html += '</div>';
-    if(pred.islPred && pred.islPred.length){
-      pred.islPred.forEach(function(p,i){
-        var col = i===0?'var(--gold)':i<2?'var(--green)':'var(--text2)';
-        var medal = i===0?'🥇':i===1?'🥈':'🥉';
-        html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:0.5px solid rgba(255,179,0,0.2);">';
-        html += '<span style="font-size:14px;">'+medal+'</span>';
-        html += '<span style="color:'+col+';font-weight:500;font-size:13px;flex:1;">'+p.label+'</span>';
-        html += '<span style="color:var(--ev);font-size:11px;font-family:var(--fm);">遷移'+p.score+'回</span>';
-        html += '</div>';
-      });
-    } else {
-      html += '<div style="font-size:12px;color:var(--text3);">遷移パターンのデータが不足しています（データ蓄積で改善されます）</div>';
-    }
-    html += '</div>';
-  }
-
   html+=`<div class="sec-title">全島一覧（スコア順）</div><div class="isl-all-grid">`;
   islStats.forEach((g,i)=>{
     const cls=g.avg>=10000?'hot':g.avg>=5000?'warm':g.avg<0?'cold':'neutral';
@@ -1861,9 +1428,6 @@ function renderVerify(){
 
 // ===== RENDER =====
 function render(){
-  // キャッシュ更新
-  try{ rebuildTransCache(); }catch(e){}
-  try{ rebuildWeekdayCache(); }catch(e){}
   renderDayBtns();updateChips();
   const el=document.getElementById('content');
   if(CV==='upload')el.innerHTML=renderUpload();
@@ -1876,66 +1440,6 @@ function render(){
   else if(CV==='retire')el.innerHTML=renderRetire();
   else if(CV==='verify')el.innerHTML=renderVerify();
   const ak=document.getElementById('akInp');if(ak)ak.value=AK;
-}
-
-function updateMobileBanner(){
-  var banner = document.getElementById('mobileBanner');
-  var check  = document.getElementById('mobileBannerCheck');
-  var label  = document.getElementById('mobileBannerLabel');
-  var slider = document.getElementById('mobileBannerSlider');
-  var dot    = document.getElementById('mobileBannerDot');
-  if(!banner) return;
-  // バナーは常に表示
-  banner.style.display = 'flex';
-  if(check)  check.checked = IS_MOBILE_MODE;
-  if(label)  label.textContent = IS_MOBILE_MODE ? 'ON（OneDrive読込中）' : 'OFF（ローカルサーバー）';
-  if(slider) slider.style.background = IS_MOBILE_MODE ? 'var(--ev)' : 'var(--surface2)';
-  if(dot)    dot.style.transform = IS_MOBILE_MODE ? 'translateX(18px)' : 'translateX(0)';
-  // スクショ取込タブのチェックボックスも同期
-  var cb = document.getElementById('mobileMode');
-  if(cb) cb.checked = IS_MOBILE_MODE;
-}
-
-function toggleMobileMode(enabled){
-  IS_MOBILE_MODE = enabled;
-  localStorage.setItem('mobile_mode', enabled ? '1' : '0');
-  updateMobileBanner();
-  var msg = document.getElementById('mobileModeMsg');
-  if(enabled){
-    if(msg){ msg.textContent = '📱 スマホモードON: OneDriveから読み込みます'; msg.style.color='var(--ev)'; }
-    // JSONBin.ioから直接読み込み（ログイン不要）
-    loadDB().then(function(){ loadWeights().then(function(){ learnWeights(); render(); }); });
-  } else {
-    if(msg){ msg.textContent = '💻 PCモードOFF: ローカルサーバーから読み込みます'; msg.style.color='var(--accent)'; }
-    loadDB().then(function(){ loadWeights().then(function(){ learnWeights(); render(); }); });
-  }
-}
-
-function saveClientId(){
-  var inp = document.getElementById('clientIdInp');
-  var id = inp ? inp.value.trim() : '';
-  // 空の場合はMicrosoft公開クライアントIDを使用
-  if(!id) id = 'd3590ed6-52b3-4102-aeff-aad2292ab01c';
-  GRAPH_CONFIG.clientId = id;
-  localStorage.setItem('graph_client_id', id);
-  initMsal();
-  var msg = document.getElementById('mobileModeMsg');
-  if(msg){ msg.textContent = '✓ 設定完了。スマホモードをONにしてください'; msg.style.color='var(--green)'; }
-}
-
-async function onSaveServer(){
-  const inp = document.getElementById('serverInp');
-  const val = inp ? inp.value.trim().replace(/\/$/, '') : '';
-  if(!val){ alert('アドレスを入力してください'); return; }
-  localStorage.setItem('pachinko_server', val);
-  const msg = document.getElementById('serverMsg');
-  if(msg){ msg.textContent = '✓ 保存しました: ' + val; msg.style.color = 'var(--green)'; }
-  setTimeout(()=>{ if(msg){ msg.textContent = 'スマホで使う場合: http://PCのIPアドレス:5173 に変更（例: http://192.168.1.5:5173）'; msg.style.color = 'var(--text3)'; }}, 3000);
-  // 新しいアドレスで再ロード
-  await loadDB();
-  await loadWeights();
-  learnWeights();
-  render();
 }
 
 async function onSaveApiKey(){
@@ -1961,61 +1465,127 @@ function resetLearn(){
   if(confirm('係数を初期値に戻しますか？')){resetWeights();render();}
 }
 
-// ===== 機種切替 =====
-// ===== モバイル対応 =====
-function isMobile(){ return window.innerWidth <= 768; }
 
-function toggleSidebar(){
-  var sb = document.getElementById('sidebar');
-  var icon = document.getElementById('hamburgerIcon');
-  var lbl = document.getElementById('hamburgerLabel');
-  if(!sb) return;
-  sb.classList.toggle('open');
-  var isOpen = sb.classList.contains('open');
-  if(icon) icon.textContent = isOpen ? '✕' : '☰';
-  if(lbl) lbl.textContent = isOpen ? '閉じる' : 'メニュー・日付選択';
+// ===== 廃番台削除 =====
+function renderRetire(){
+  var units=[...new Set(DB.map(function(r){return r.u;}))].sort(function(a,b){return +a-+b;});
+  var chipsHtml=units.map(function(u){
+    return '<span id="rchip'+u+'" style="display:inline-block;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-family:var(--fm);font-size:11px;color:var(--text2);margin:2px;">'+u+'</span>';
+  }).join('');
+  var parts=[
+    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;">',
+    '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">廃番台データ削除</div>',
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:12px;">廃番・台移動になった台番号を範囲指定して削除します。</div>',
+    '<div style="background:var(--bg3);border-radius:6px;padding:10px 12px;margin-bottom:12px;">',
+    '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">現在DB内の台番号（'+units.length+'台）</div>',
+    chipsHtml,
+    '</div>',
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">',
+    '<div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">削除開始台番号</div>',
+    '<input id="retireFrom" type="number" placeholder="571" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:14px;box-sizing:border-box;"></div>',
+    '<div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">削除終了台番号</div>',
+    '<input id="retireTo" type="number" placeholder="575" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:14px;box-sizing:border-box;"></div>',
+    '</div>',
+    '<div id="retirePreview" style="background:rgba(255,100,0,0.08);border:1px solid rgba(255,100,0,0.3);border-radius:6px;padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--text2);">台番号を入力してプレビューボタンを押してください</div>',
+    '<div style="display:flex;gap:8px;margin-bottom:6px;">',
+    '<button id="retirePreviewBtn" style="flex:1;padding:9px;background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:13px;cursor:pointer;">プレビュー</button>',
+    '<button id="retireExecBtn" style="flex:1;padding:9px;background:var(--red);color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">削除実行</button>',
+    '</div>',
+    '<button id="retireCancelBtn" style="width:100%;padding:8px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;">キャンセル（ランキングに戻る）</button>',
+    '</div>',
+    '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;">',
+    '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;">個別指定で削除</div>',
+    '<div style="font-size:11px;color:var(--text2);margin-bottom:6px;">カンマ区切りで指定（例: 571,572,573）</div>',
+    '<textarea id="retireList" placeholder="571,572,573" style="width:100%;padding:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;height:56px;resize:none;box-sizing:border-box;margin-bottom:6px;"></textarea>',
+    '<div id="retireListPreview" style="font-size:11px;color:var(--text3);margin-bottom:8px;"></div>',
+    '<div style="display:flex;gap:8px;">',
+    '<button id="retireListPreviewBtn" style="flex:1;padding:9px;background:var(--surface2);color:var(--text);border:1px solid var(--border2);border-radius:6px;font-size:13px;cursor:pointer;">プレビュー</button>',
+    '<button id="retireListExecBtn" style="flex:1;padding:9px;background:var(--red);color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">削除実行</button>',
+    '</div>',
+    '</div>',
+  ];
+  var result=parts.join('');
+  // イベント設定はsetTimeoutで遅延実行
+  setTimeout(function(){
+    var pb=document.getElementById('retirePreviewBtn');
+    var eb=document.getElementById('retireExecBtn');
+    var cb=document.getElementById('retireCancelBtn');
+    var lpb=document.getElementById('retireListPreviewBtn');
+    var leb=document.getElementById('retireListExecBtn');
+    if(pb) pb.addEventListener('click', previewRetire);
+    if(eb) eb.addEventListener('click', execRetire);
+    if(cb) cb.addEventListener('click', function(){CV='rank';render();});
+    if(lpb) lpb.addEventListener('click', previewRetireList);
+    if(leb) leb.addEventListener('click', execRetireList);
+  }, 50);
+  return result;
 }
 
-function initMobile(){
-  var hb = document.getElementById('hamburger');
-  if(isMobile() && hb){
-    hb.style.display = 'flex';
+function previewRetire(){
+  var fromEl=document.getElementById('retireFrom');
+  var toEl=document.getElementById('retireTo');
+  var prev=document.getElementById('retirePreview');
+  if(!fromEl||!toEl||!prev) return;
+  var from=parseInt(fromEl.value);
+  var to=parseInt(toEl.value);
+  if(isNaN(from)||isNaN(to)){prev.textContent='台番号を入力してください';return;}
+  if(from>to){prev.textContent='開始台番号は終了台番号以下にしてください';return;}
+  var targets=[...new Set(DB.map(function(r){return r.u;}))].filter(function(u){return +u>=from&&+u<=to;}).sort(function(a,b){return +a-+b;});
+  var records=DB.filter(function(r){return +r.u>=from&&+r.u<=to;}).length;
+  if(!targets.length){
+    prev.innerHTML='<span style="color:var(--text3);">該当台番号はありません</span>';
+  } else {
+    prev.innerHTML='削除対象: <b style="color:var(--red);">'+targets.join('、')+'</b>（'+targets.length+'台 / '+records+'レコード）';
   }
-  updateMobileBanner();
-  window.addEventListener('resize', function(){
-    var hb = document.getElementById('hamburger');
-    var sb = document.getElementById('sidebar');
-    if(!hb || !sb) return;
-    if(isMobile()){
-      hb.style.display = 'flex';
-    } else {
-      hb.style.display = 'none';
-      sb.classList.remove('open');
-    }
+  document.querySelectorAll('[id^="rchip"]').forEach(function(el){
+    var u=el.id.replace('rchip','');
+    var hit=+u>=from&&+u<=to;
+    el.style.background=hit?'rgba(255,50,50,0.2)':'var(--surface2)';
+    el.style.borderColor=hit?'var(--red)':'var(--border)';
+    el.style.color=hit?'var(--red)':'var(--text2)';
   });
 }
 
-// サイドバーのnavボタンをタップしたらメニューを閉じる（モバイルのみ）
-var _origSv = null;
-function sv(v, btn){
-  CV=v; CD=null;
-  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('active');});
-  document.querySelectorAll('.db').forEach(function(b){b.classList.remove('active');});
-  if(btn) btn.classList.add('active');
-  SK2='差玉'; SA=false;
-  // モバイルならメニューを閉じる
-  if(isMobile()){
-    var sb = document.getElementById('sidebar');
-    var hb = document.getElementById('hamburger');
-    var icon = document.getElementById('hamburgerIcon');
-    var lbl = document.getElementById('hamburgerLabel');
-    if(sb) sb.classList.remove('open');
-    if(icon) icon.textContent = '☰';
-    if(lbl) lbl.textContent = 'メニュー・日付選択';
-  }
-  render();
+function previewRetireList(){
+  var ta=document.getElementById('retireList');
+  var prev=document.getElementById('retireListPreview');
+  if(!ta||!prev) return;
+  var targets=ta.value.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&!isNaN(+s);});
+  var inDB=targets.filter(function(u){return DB.some(function(r){return r.u===u;});});
+  var records=DB.filter(function(r){return targets.indexOf(r.u)>=0;}).length;
+  prev.textContent=inDB.length?'削除対象: '+inDB.join('、')+'（'+inDB.length+'台 / '+records+'レコード）':'該当台なし';
 }
 
+function execRetire(){
+  var fromEl=document.getElementById('retireFrom');
+  var toEl=document.getElementById('retireTo');
+  if(!fromEl||!toEl){alert('入力欄が見つかりません');return;}
+  var from=parseInt(fromEl.value);
+  var to=parseInt(toEl.value);
+  if(isNaN(from)||isNaN(to)||from>to){alert('台番号の範囲を正しく入力してください');return;}
+  var targets=[...new Set(DB.map(function(r){return r.u;}))].filter(function(u){return +u>=from&&+u<=to;});
+  if(!targets.length){alert('該当する台番号がありません（'+from+'〜'+to+'）');return;}
+  var records=DB.filter(function(r){return +r.u>=from&&+r.u<=to;}).length;
+  if(!confirm('台'+from+'〜'+to+'（'+targets.length+'台・'+records+'レコード）を削除します。元に戻せません。')) return;
+  var before=DB.length;
+  DB=DB.filter(function(r){return +r.u<from||+r.u>to;});
+  saveDB().then(function(){learnWeights();alert('削除完了！'+(before-DB.length)+'レコード削除しました。');CV='rank';render();});
+}
+
+function execRetireList(){
+  var ta=document.getElementById('retireList');
+  if(!ta){alert('入力欄が見つかりません');return;}
+  var targets=ta.value.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&!isNaN(+s);});
+  if(!targets.length){alert('台番号を入力してください');return;}
+  var inDB=targets.filter(function(u){return DB.some(function(r){return r.u===u;});});
+  if(!inDB.length){alert('該当する台番号がありません');return;}
+  var records=DB.filter(function(r){return targets.indexOf(r.u)>=0;}).length;
+  if(!confirm(inDB.join('、')+'（'+inDB.length+'台・'+records+'レコード）を削除します。元に戻せません。')) return;
+  var before=DB.length;
+  DB=DB.filter(function(r){return targets.indexOf(r.u)<0;});
+  saveDB().then(function(){learnWeights();alert('削除完了！'+(before-DB.length)+'レコード削除しました。');CV='rank';render();});
+}
+// ===== 機種切替 =====
 function switchMachine(id, btn){
   MACHINE = id;
   document.querySelectorAll('.mt-btn').forEach(function(b){b.classList.remove('active');});
@@ -2027,353 +1597,88 @@ function switchMachine(id, btn){
   if(hf) hf.innerHTML = mc.formula;
   CV='rank'; CD=null; FM='all'; SK2='差玉'; SA=false;
   loadDB().then(function(){
-    loadWeights().then(function(){
-      learnWeights();
-      render();
-    });
+    loadWeights().then(function(){ learnWeights(); render(); });
   });
 }
 
-
-// ===== 遷移パターン分析 =====
-// キャッシュ（buildStats高速化のため）
-var TRANS_CACHE = {taiMatrix:{}, islMatrix:{}, groups:null, built:false};
-
-function rebuildTransCache(){
-  var td = buildTransitionData(10000);
-  TRANS_CACHE.taiMatrix = td.taiMatrix;
-  TRANS_CACHE.islMatrix = td.islMatrix;
-  TRANS_CACHE.groups    = td.groups;
-  TRANS_CACHE.built     = true;
-}
-
-function buildTransitionData(thresh){
-  thresh = thresh || 10000;
-  var dates = getDates().slice().reverse(); // 古い順
-  var taiMatrix = {}; // taiMatrix[prev][next] = count
-  var islMatrix = {}; // islMatrix[prevIsl][nextIsl] = count
-  var groups = null;
-
-  for(var i=0; i<dates.length-1; i++){
-    var today = dates[i];
-    var tomorrow = dates[i+1];
-    var todayRows = getByDate(today);
-    var tomorrowRows = getByDate(tomorrow);
-    if(!todayRows.length || !tomorrowRows.length) continue;
-
-    // 今日出た台（thresh以上）
-    var hotToday = todayRows.filter(function(r){return r.差玉>=thresh && isValidActual(r);}).map(function(r){return r.u;});
-    // 翌日出た台
-    var hotTomorrow = tomorrowRows.filter(function(r){return r.差玉>=thresh && isValidActual(r);}).map(function(r){return r.u;});
-
-    // 台遷移カウント
-    hotToday.forEach(function(prev){
-      if(!taiMatrix[prev]) taiMatrix[prev]={};
-      hotTomorrow.forEach(function(next){
-        taiMatrix[prev][next] = (taiMatrix[prev][next]||0)+1;
-      });
-    });
-
-    // 島グループ（初回だけ生成）
-    if(!groups){
-      var units=[...new Set(todayRows.map(function(r){return r.u;}))];
-      groups = buildGroups(units);
-    }
-
-    // 島遷移カウント
-    function getIsl(u){
-      if(!groups) return null;
-      for(var g=0;g<groups.length;g++){if(groups[g].units.indexOf(u)>=0) return groups[g].label;}
-      return null;
-    }
-    var hotIslToday = [...new Set(hotToday.map(getIsl).filter(Boolean))];
-    var hotIslTomorrow = [...new Set(hotTomorrow.map(getIsl).filter(Boolean))];
-
-    hotIslToday.forEach(function(prev){
-      if(!islMatrix[prev]) islMatrix[prev]={};
-      hotIslTomorrow.forEach(function(next){
-        islMatrix[prev][next] = (islMatrix[prev][next]||0)+1;
-      });
-    });
-  }
-
-  return {taiMatrix, islMatrix, groups, thresh};
-}
-
-// 今日出た台・島から明日の予測
-function getTomorrowPrediction(thresh){
-  thresh = thresh || 10000;
-  var dates = getDates();
-  if(!dates.length) return {taiPred:[], islPred:[]};
-  var latestDate = dates[0];
-  var latestRows = getByDate(latestDate);
-  var hotToday = latestRows.filter(function(r){return r.差玉>=thresh && isValidActual(r);}).map(function(r){return r.u;});
-  var td = buildTransitionData(thresh);
-
-  // 台予測: 過去に今日の出た台の翌日に出た台をカウント
-  var taiScore = {};
-  hotToday.forEach(function(prev){
-    var nexts = td.taiMatrix[prev]||{};
-    Object.keys(nexts).forEach(function(next){
-      taiScore[next] = (taiScore[next]||0) + nexts[next];
-    });
-  });
-  var taiPred = Object.entries(taiScore).sort(function(a,b){return b[1]-a[1];}).slice(0,10).map(function(e){return {u:e[0],score:e[1]};});
-
-  // 島予測
-  var units=[...new Set(latestRows.map(function(r){return r.u;}))];
-  var groups = buildGroups(units);
-  function getIsl(u){for(var g=0;g<groups.length;g++){if(groups[g].units.indexOf(u)>=0)return groups[g].label;}return null;}
-  var hotIslToday = [...new Set(hotToday.map(getIsl).filter(Boolean))];
-  var islScore = {};
-  hotIslToday.forEach(function(prev){
-    var nexts = td.islMatrix[prev]||{};
-    Object.keys(nexts).forEach(function(next){
-      islScore[next] = (islScore[next]||0) + nexts[next];
-    });
-  });
-  var islPred = Object.entries(islScore).sort(function(a,b){return b[1]-a[1];}).slice(0,6).map(function(e){return {label:e[0],score:e[1]};});
-
-  return {taiPred, islPred, hotToday, hotIslToday, latestDate, groups};
-}
-
-
-
-// ===== 廃番台削除 =====
-function renderRetire(){
-  // 現在のDB内の台番号一覧
-  var units = [...new Set(DB.map(function(r){return r.u;}))].sort(function(a,b){return +a-+b;});
-  var minU = units.length ? units[0] : '';
-  var maxU = units.length ? units[units.length-1] : '';
-
-  var html = '';
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:14px;">';
-  html += '<div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:12px;">🗑 廃番台データ削除</div>';
-  html += '<div style="font-size:12px;color:var(--text2);margin-bottom:14px;">台移動・廃番になった台番号の範囲を指定してデータを削除します。継続台の過去データはそのまま残ります。</div>';
-
-  // 現在の台番号一覧表示
-  html += '<div style="background:var(--bg3);border-radius:6px;padding:10px 12px;margin-bottom:14px;">';
-  html += '<div style="font-size:10px;color:var(--text3);margin-bottom:6px;">現在DB内の台番号（' + units.length + '台）</div>';
-  html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
-  units.forEach(function(u){
-    html += '<span id="retire-chip-' + u + '" style="background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:2px 7px;font-family:var(--fm);font-size:11px;color:var(--text2);">' + u + '</span>';
-  });
-  html += '</div></div>';
-
-  // 範囲指定フォーム
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">';
-  html += '<div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">削除開始台番号</div>';
-  html += '<input id="retireFrom" type="number" placeholder="例: 571" min="0" max="9999" style="width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--fm);font-size:14px;" oninput="previewRetire()"></div>';
-  html += '<div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">削除終了台番号</div>';
-  html += '<input id="retireTo" type="number" placeholder="例: 575" min="0" max="9999" style="width:100%;padding:8px 10px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:var(--fm);font-size:14px;" oninput="previewRetire()"></div>';
-  html += '</div>';
-
-  // プレビューエリア
-  html += '<div id="retirePreview" style="background:rgba(255,100,0,0.08);border:1px solid rgba(255,100,0,0.3);border-radius:6px;padding:10px 12px;margin-bottom:12px;min-height:40px;font-size:12px;color:var(--text2);">台番号を入力すると削除対象が表示されます</div>';
-
-  // 削除ボタン
-  html += '<div style="display:flex;gap:8px;">';
-  html += '<button onclick="execRetire()" style="flex:1;padding:10px;background:var(--red);color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">🗑 指定範囲を削除</button>';
-  html += '<button onclick="sv('upload',null)" style="padding:10px 16px;background:var(--surface);border:1px solid var(--border2);border-radius:6px;font-size:12px;color:var(--text2);cursor:pointer;">キャンセル</button>';
-  html += '</div>';
-  html += '</div>';
-
-  // 複数範囲の指定
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;">複数範囲を一括削除</div>';
-  html += '<div style="font-size:11px;color:var(--text2);margin-bottom:8px;">カンマ区切りで台番号を直接指定（例: 571,572,573,574,575）</div>';
-  html += '<textarea id="retireList" placeholder="571,572,573,574,575" style="width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-size:13px;height:60px;resize:none;" oninput="previewRetireList()"></textarea>';
-  html += '<div id="retireListPreview" style="font-size:11px;color:var(--text3);margin-top:4px;margin-bottom:8px;"></div>';
-  html += '<button onclick="execRetireList()" style="width:100%;padding:9px;background:var(--red);color:white;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;">🗑 リスト指定で削除</button>';
-  html += '</div>';
-
-  return html;
-}
-
-function previewRetire(){
-  var from = parseInt(document.getElementById('retireFrom').value);
-  var to   = parseInt(document.getElementById('retireTo').value);
-  var prev = document.getElementById('retirePreview');
-  if(!prev) return;
-  if(isNaN(from) || isNaN(to)){ prev.textContent = '台番号を入力すると削除対象が表示されます'; return; }
-  if(from > to){ prev.textContent = '開始台番号は終了台番号以下にしてください'; return; }
-  var targets = [...new Set(DB.map(function(r){return r.u;}))].filter(function(u){ return +u>=from&&+u<=to; }).sort(function(a,b){return +a-+b;});
-  var records = DB.filter(function(r){ return +r.u>=from&&+r.u<=to; }).length;
-  if(!targets.length){
-    prev.innerHTML = '<span style="color:var(--text3);">該当する台番号はありません</span>';
-  } else {
-    prev.innerHTML = '削除対象: <b style="color:var(--red);">' + targets.join('、') + '</b>（' + targets.length + '台 / ' + records + 'レコード）';
-  }
-  // チップをハイライト
-  document.querySelectorAll('[id^="retire-chip-"]').forEach(function(el){
-    var u = el.id.replace('retire-chip-','');
-    el.style.background = (+u>=from&&+u<=to) ? 'rgba(255,50,50,0.2)' : 'var(--surface2)';
-    el.style.borderColor = (+u>=from&&+u<=to) ? 'var(--red)' : 'var(--border)';
-    el.style.color = (+u>=from&&+u<=to) ? 'var(--red)' : 'var(--text2)';
-  });
-}
-
-function previewRetireList(){
-  var listEl = document.getElementById('retireList');
-  var prevEl = document.getElementById('retireListPreview');
-  if(!listEl||!prevEl) return;
-  var targets = listEl.value.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&!isNaN(+s);});
-  var inDB = targets.filter(function(u){ return DB.some(function(r){return r.u===u;}); });
-  var records = DB.filter(function(r){ return targets.indexOf(r.u)>=0; }).length;
-  prevEl.textContent = inDB.length ? '削除対象: ' + inDB.join('、') + '（' + inDB.length + '台 / ' + records + 'レコード）' : '該当台なし';
-}
-
-function execRetire(){
-  var from = parseInt(document.getElementById('retireFrom').value);
-  var to   = parseInt(document.getElementById('retireTo').value);
-  if(isNaN(from)||isNaN(to)||from>to){ alert('台番号の範囲を正しく入力してください'); return; }
-  var targets = [...new Set(DB.map(function(r){return r.u;}))].filter(function(u){ return +u>=from&&+u<=to; });
-  if(!targets.length){ alert('該当する台番号がありません'); return; }
-  var records = DB.filter(function(r){ return +r.u>=from&&+r.u<=to; }).length;
-  if(!confirm('台' + from + '〜' + to + '（' + targets.length + '台・' + records + 'レコード）のデータを削除します。この操作は元に戻せません。')) return;
-  DB = DB.filter(function(r){ return +r.u<from||+r.u>to; });
-  saveDB().then(function(){ learnWeights(); render(); });
-  alert('削除完了！' + targets.length + '台のデータを削除しました。');
-}
-
-function execRetireList(){
-  var listEl = document.getElementById('retireList');
-  if(!listEl) return;
-  var targets = listEl.value.split(',').map(function(s){return s.trim();}).filter(function(s){return s&&!isNaN(+s);});
-  if(!targets.length){ alert('台番号を入力してください'); return; }
-  var inDB = targets.filter(function(u){ return DB.some(function(r){return r.u===u;}); });
-  if(!inDB.length){ alert('該当する台番号がありません'); return; }
-  var records = DB.filter(function(r){ return targets.indexOf(r.u)>=0; }).length;
-  if(!confirm(inDB.join('、') + '（' + inDB.length + '台・' + records + 'レコード）のデータを削除します。')) return;
-  DB = DB.filter(function(r){ return targets.indexOf(r.u)<0; });
-  saveDB().then(function(){ learnWeights(); render(); });
-  alert('削除完了！' + inDB.length + '台のデータを削除しました。');
-}
 
 // ===== 台詳細モーダル =====
 function showTaiDetail(u){
-  var rows = DB.filter(function(r){ return r.u === u; }).sort(function(a,b){ return a.date < b.date ? -1 : 1; });
-  if(!rows.length){ alert('データがありません'); return; }
+  var rows=DB.filter(function(r){return r.u===u;}).sort(function(a,b){return a.date<b.date?-1:1;});
+  if(!rows.length){alert('データがありません');return;}
+  var vals=rows.map(function(r){return r.差玉;});
+  var avg=Math.round(vals.reduce(function(s,v){return s+v;},0)/vals.length);
+  var maxV=Math.max.apply(null,vals);
+  var cnt10k=vals.filter(function(v){return v>=10000;}).length;
+  var recent=rows.slice(-3);
+  var trend=recent.length>=2?Math.round((recent[recent.length-1].差玉-recent[0].差玉)/(recent.length-1)):0;
+  var maxAbs=Math.max.apply(null,vals.map(function(v){return Math.abs(v);}));
+  if(maxAbs===0)maxAbs=1;
 
-  // 統計計算
-  var vals = rows.map(function(r){ return r.差玉; });
-  var avg  = Math.round(vals.reduce(function(s,v){return s+v;},0) / vals.length);
-  var max  = Math.max.apply(null, vals);
-  var cnt10k = vals.filter(function(v){return v>=10000;}).length;
-  var recent = rows.slice(-3);
-  var trend = recent.length >= 2
-    ? Math.round((recent[recent.length-1].差玉 - recent[0].差玉) / (recent.length-1))
-    : 0;
+  document.getElementById('taiModalTitle').textContent='台 '+u+' の履歴';
 
-  // モーダルタイトル
-  document.getElementById('taiModalTitle').textContent = '台 ' + u + ' の履歴';
+  var trendCol=trend>0?'var(--green)':trend<0?'var(--red)':'var(--text2)';
+  var trendMark=trend>0?'↑':trend<0?'↓':'→';
+  var WEEKDAY=['日','月','火','水','木','金','土'];
 
-  // 最大絶対値（バーの幅計算用）
-  var maxAbs = Math.max(Math.abs(max), Math.max.apply(null, vals.map(Math.abs)), 1);
+  var h='';
+  h+='<div class="modal-stat-row">';
+  h+='<div class="modal-stat"><div class="modal-stat-lbl">加重平均</div><div class="modal-stat-val '+dc(avg)+'">'+fmt(avg)+'</div></div>';
+  h+='<div class="modal-stat"><div class="modal-stat-lbl">最高差玉</div><div class="modal-stat-val hot">'+fmt(maxV)+'</div></div>';
+  h+='<div class="modal-stat"><div class="modal-stat-lbl">10k超え</div><div class="modal-stat-val">'+cnt10k+'/'+rows.length+'日</div></div>';
+  h+='</div>';
 
-  var html = '';
+  h+='<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">';
+  h+='<span style="font-size:11px;color:var(--text3);">直近トレンド</span>';
+  h+='<span style="font-family:var(--fm);font-size:15px;font-weight:600;color:'+trendCol+';">'+trendMark+' '+fmt(trend)+'/日</span>';
+  h+='<span style="font-size:11px;color:var(--text3);margin-left:auto;">直近'+recent.length+'日の変化</span>';
+  h+='</div>';
 
-  // サマリー
-  html += '<div class="modal-stat-row">';
-  html += '<div class="modal-stat"><div class="modal-stat-lbl">加重平均</div><div class="modal-stat-val ' + dc(avg) + '">' + fmt(avg) + '</div></div>';
-  html += '<div class="modal-stat"><div class="modal-stat-lbl">最高差玉</div><div class="modal-stat-val hot">' + fmt(max) + '</div></div>';
-  html += '<div class="modal-stat"><div class="modal-stat-lbl">10k超え</div><div class="modal-stat-val">' + cnt10k + '/' + rows.length + '日</div></div>';
-  html += '</div>';
-
-  // トレンド
-  var trendCol = trend > 0 ? 'var(--green)' : trend < 0 ? 'var(--red)' : 'var(--text2)';
-  var trendMark = trend > 0 ? '↑' : trend < 0 ? '↓' : '→';
-  html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">';
-  html += '<span style="font-size:11px;color:var(--text3);">直近トレンド</span>';
-  html += '<span style="font-family:var(--fm);font-size:15px;color:' + trendCol + ';font-weight:600;">' + trendMark + ' ' + fmt(trend) + '/日</span>';
-  html += '<span style="font-size:11px;color:var(--text3);margin-left:auto;">直近' + recent.length + '日の変化</span>';
-  html += '</div>';
-
-  // 棒グラフ（日別差玉）
-  html += '<div class="modal-chart">';
-  html += '<div class="modal-chart-title">日別差玉履歴</div>';
+  h+='<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">日別差玉履歴</div>';
   rows.slice().reverse().forEach(function(r){
-    var w = Math.min(100, Math.round(Math.abs(r.差玉) / maxAbs * 100));
-    var cls = dc(r.差玉);
-    var isEvDay = isEv(r.date);
-    var dateShort = r.date.slice(5); // MM-DD
-    var dow = ['日','月','火','水','木','金','土'][new Date(r.date).getDay()];
-    html += '<div class="bar-row">';
-    html += '<div class="bar-date">' + dateShort + '<span style="color:var(--text3);font-size:9px;">(' + dow + ')</span></div>';
-    html += isEvDay ? '<div class="bar-ev" title="' + evTypeName(r.date) + '"></div>' : '<div class="bar-ev-empty"></div>';
-    html += '<div class="bar-wrap">';
-    if(r.差玉 >= 0){
-      html += '<div class="bar-fill ' + cls + '" style="width:' + w + '%;"></div>';
+    var w=Math.min(100,Math.round(Math.abs(r.差玉)/maxAbs*100));
+    var cls=dc(r.差玉);
+    var dateShort=r.date.slice(5);
+    var dow=WEEKDAY[new Date(r.date).getDay()];
+    var evMark=isEv(r.date)?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ev);flex-shrink:0;margin-right:2px;"></span>':'<span style="width:8px;flex-shrink:0;display:inline-block;"></span>';
+    h+='<div class="bar-row">';
+    h+='<div class="bar-date">'+dateShort+'<span style="color:var(--text3);font-size:9px;">('+dow+')</span></div>';
+    h+=evMark;
+    h+='<div class="bar-wrap">';
+    if(r.差玉>=0){
+      h+='<div class="bar-pos" style="width:'+w+'%;background:'+(cls==='hot'?'var(--green)':cls==='warm'?'var(--orange)':'var(--text3)')+'"></div>';
     } else {
-      html += '<div style="position:absolute;right:0;top:0;height:100%;width:' + w + '%;background:var(--red);border-radius:3px;opacity:0.7;"></div>';
+      h+='<div class="bar-neg" style="width:'+w+'%;background:var(--red);"></div>';
     }
-    html += '</div>';
-    html += '<div class="bar-val ' + cls + '">' + fmt(r.差玉) + '</div>';
-    html += '</div>';
+    h+='</div>';
+    h+='<div class="bar-val '+cls+'">'+fmt(r.差玉)+'</div>';
+    h+='</div>';
   });
-  html += '</div>';
+  h+='<div style="font-size:10px;color:var(--text3);margin-top:8px;">🟢 = イベント日</div>';
 
-  html += '<div style="font-size:10px;color:var(--text3);">🟢 = イベント日</div>';
-
-  document.getElementById('taiModalContent').innerHTML = html;
-  document.getElementById('taiModal').style.display = 'flex';
+  document.getElementById('taiModalContent').innerHTML=h;
+  document.getElementById('taiModal').style.display='flex';
 }
 
-function closeTaiModal(event){
-  if(!event || event.target === document.getElementById('taiModal')){
-    document.getElementById('taiModal').style.display = 'none';
-  }
+function closeTaiModal(){
+  document.getElementById('taiModal').style.display='none';
 }
 
-// ESCキーで閉じる
-document.addEventListener('keydown', function(e){
-  if(e.key === 'Escape') closeTaiModal();
-});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTaiModal();});
 
 // 起動時の非同期初期化
-// 起動時の非同期初期化
-
 (async()=>{
-  // ===== 設定値の復元 =====
-  // GitHub Pages環境では自動的にスマホモードON
-  var isGitHubPages = window.location.hostname.includes('github.io');
-  if(isGitHubPages){
-    IS_MOBILE_MODE = true;
-    localStorage.setItem('mobile_mode','1');
-    console.log('[Mode] GitHub Pages detected: mobile mode auto-enabled');
-  } else {
-    var savedMobile = localStorage.getItem('mobile_mode');
-    if(savedMobile === '1') IS_MOBILE_MODE = true;
-  }
-  // Client ID復元
-  var savedClientId = localStorage.getItem('graph_client_id');
-  if(savedClientId) GRAPH_CONFIG.clientId = savedClientId;
-  // OneDriveパス復元
-  var savedPath = localStorage.getItem('onedrive_data_path');
-  if(savedPath) ONEDRIVE_DATA_PATH = savedPath;
-  // MSAL初期化
-  initMsal();
-  // バナー状態を復元
-  updateMobileBanner();
-
-  // ヘッダー初期化
-  var ht=document.getElementById('hdrTitle');
-  var hf=document.getElementById('hdrFormula');
-  if(ht)ht.textContent=getMC().name+' 予想システム';
-  if(hf)hf.innerHTML=getMC().formula;
   await loadDB();
   await loadWeights();
   await loadApiKey();
   learnWeights();
   initPaste();
-  initMobile();
   render();
 })();
 </script>
 
-<!-- 台詳細モーダル -->
-<div id="taiModal" class="modal-overlay" style="display:none;" onclick="closeTaiModal(event)">
-  <div class="modal-box" id="taiModalBox">
+<div id="taiModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)closeTaiModal()">
+  <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="taiModalTitle">台 000</div>
       <button class="modal-close" onclick="closeTaiModal()">✕</button>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>モバイルテスト</title>
+<style>
+body { margin: 0; font-family: sans-serif; background: #111; color: white; }
+.wrap { display: flex; }
+.side { width: 200px; background: #222; padding: 20px; flex-shrink: 0; }
+.main { flex: 1; padding: 20px; background: #333; }
+.info { background: #444; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
+@media screen and (max-width: 768px) {
+  .wrap { flex-direction: column !important; }
+  .side { width: 100% !important; }
+  .info.mobile-ok { background: green; }
+}
+</style>
+</head>
+<body>
+<div class="info mobile-ok">
+  画面幅: <span id="w"></span>px —
+  <span id="msg">モバイルCSSが効いていません</span>
+</div>
+<div class="wrap">
+  <div class="side">サイドバー（スマホでは上に来るはず）</div>
+  <div class="main">コンテンツ（スマホでは下に来るはず）</div>
+</div>
+<script>
+document.getElementById('w').textContent = window.innerWidth;
+if (window.innerWidth <= 768) {
+  document.getElementById('msg').textContent = '✅ モバイルCSSが効いています！';
+} else {
+  document.getElementById('msg').textContent = '⚠️ PC幅で表示中（' + window.innerWidth + 'px）';
+}
+</script>
+</body>
+</html>

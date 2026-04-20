@@ -1036,6 +1036,7 @@ function renderUpload(){
     <button class="bsm" onclick="exportDB()">CSVエクスポート</button>
     <button class="bsm" onclick="resetDB()">初期データに戻す</button>
     <button class="bsm d" onclick="clearDB()">全削除</button>
+    <button class="bsm" onclick="if(confirm('学習係数を初期値にリセットしますか？')){resetWeights();learnWeights();render();}" style="margin-top:4px;">🔄 係数リセット</button>
     <button class="bsm" onclick="sv('retire',this)" style="margin-top:4px;background:rgba(255,100,0,0.15);border-color:var(--orange);color:var(--orange);">廃番削除</button>
     <span class="dc">${DB.length}件 / ${dates.length}日分（イベント日: ${[...new Set(DB.filter(r=>isEv(r.date)).map(r=>r.date))].length}日）</span>
   </div>

@@ -610,7 +610,8 @@ function exportDB(){
 }
 function getDates(){return[...new Set(DB.map(r=>r.date))].sort().reverse();}
 function getByDate(d){return DB.filter(r=>r.date===d);}
-function getRecent7(){const c=new Date();c.setDate(c.getDate()-7);return DB.filter(r=>new Date(r.date)>=c);}
+function getRecent7(){return DB;} // 全期間データを使用
+function getRecentN(n){const c=new Date();c.setDate(c.getDate()-n);return DB.filter(r=>new Date(r.date)>=c);}
 
 // 検証対象外の台判定（累計ST500以下かつ大当り0回 = 未稼働・開店直後）
 function isValidActual(r){return!(r.累<=500&&r.総===0);}
@@ -1214,7 +1215,7 @@ function renderEvComp(){
     <div class="mc"><div class="mc-lbl">通常全体平均</div><div class="mc-val ${normAvgAll>=0?'green':''}">${fmt(normAvgAll)}</div></div>
   </div>`;
   if(!evDates.length){
-    html+=`<div class="warn-banner">直近7日分にイベント日データがまだありません。5のつく日（5・15・25日）またはゾロ目（11・22日）のスクショを取り込むと比較分析が可能になります。</div>`;
+    html+=`<div class="warn-banner">直近データにイベント日データがまだありません。5のつく日（5・15・25日）またはゾロ目（11・22日）のスクショを取り込むと比較分析が可能になります。</div>`;
   }
   html+=`<div class="tw"><table><thead><tr>
     <th style="text-align:left;">台番号</th>
@@ -1313,7 +1314,7 @@ function renderDay(){
 // ===== 正解率検証 =====
 // 「その日のデータを除いた過去データ」で予想を再現し、実績と比較する
 function buildStatsExcluding(excludeDate){
-  // excludeDate を除いた直近7日分で統計を組み直す
+  // excludeDate を除いた全期間データで統計を組み直す
   const cutoff=new Date(excludeDate);cutoff.setDate(cutoff.getDate()-7);
   const recent=DB.filter(r=>r.date!==excludeDate&&new Date(r.date)>=cutoff&&new Date(r.date)<new Date(excludeDate));
   if(!recent.length)return{taiStats:[],islStats:[]};
@@ -1385,8 +1386,8 @@ function renderVerify(){
     return wPanel+`<div class="empty"><div class="empty-ico">✅</div><div class="empty-txt">データが2日分以上必要です</div><div style="font-size:12px;color:var(--text3);margin-top:8px;">スクショを追加するとここに正解率が表示されます</div></div>`;
   }
 
-  // 各日の予想と実績を比較（直近7日分）
-  const verifyDates=dates.slice(0,7); // 最新7日分
+  // 各日の予想と実績を比較（全日分）
+  const verifyDates=dates; // 全日分
   let totalTaiHit=0,totalTaiNear=0,totalTaiTotal=0;
   let totalIslHit=0,totalIslNear=0,totalIslTotal=0;
   const dayResults=[];

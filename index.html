@@ -850,13 +850,20 @@ function buildStats(overrideDB){
         if(latestRow){
           var prevDama=latestRow.差玉;
           var prevPat=prevDama>=10000?'hot':prevDama>=5000?'warm':prevDama>=0?'neutral':'cold';
-          var DP={
+          // 機種別ボーナステーブル
+          var DP_DAIKAI={
             '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
             '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
             '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
             '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
             '3_neutral':-6000,'0_warm':-6000,
           };
+          var DP_EVA={
+            '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
+            '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
+            '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
+          };
+          var DP=MACHINE==='eva'?DP_EVA:DP_DAIKAI;
           digitPatBonus=DP[tDigit+'_'+prevPat]||0;
         }
       }
@@ -871,11 +878,17 @@ function buildStats(overrideDB){
         var tgt2=todayStr();
         var tDigit2=new Date(tgt2).getDate()%10;
         var prevDayRows=getByDate(prevDayStr2);
-        var ISL_DEF={
+        var ISL_DEF_DAIKAI={
           '556島':['556','557','558','559','560'],'561島':['561','562','563','564','565'],
           '566島':['566','567','568','569','570'],'571島':['571','572','573','574','575'],
           '576島':['576','577','578','579','580'],'581島':['581','582','583','584','585']
         };
+        var ISL_DEF_EVA={
+          '427島':['427','428','429'],'430島':['430','431','432'],
+          '433島':['433','434','435'],'466島':['466','467','468'],
+          '469島':['469','470','471'],'472島':['472','473','474']
+        };
+        var ISL_DEF=MACHINE==='eva'?ISL_DEF_EVA:ISL_DEF_DAIKAI;
         var myIsl=null;
         Object.keys(ISL_DEF).forEach(function(n){if(ISL_DEF[n].indexOf(u)>=0)myIsl=n;});
         if(myIsl){
@@ -884,7 +897,7 @@ function buildStats(overrideDB){
           var islHot=islRows.filter(function(r){return r.差玉>=10000;}).length;
           var islAvg=islRows.length?islRows.reduce(function(s,r){return s+r.差玉;},0)/islRows.length:0;
           var islPat=islHot>=2?'isl_hot':islHot===1?'isl_one':islAvg>=0?'isl_neutral':'isl_cold';
-          var IB={
+          var IB_DAIKAI={
             '566島_isl_hot_7':-11520,'566島_isl_hot_9':9813,
             '556島_isl_hot_1':8480,'556島_isl_one_1':8480,
             '561島_isl_hot_9':8480,'571島_isl_hot_5':8480,
@@ -893,6 +906,16 @@ function buildStats(overrideDB){
             '561島_isl_hot_7':-7519,'566島_isl_one_3':-7519,
             '566島_isl_one_4':-7519,
           };
+          var IB_EVA={
+            '469島_isl_cold_4':18000,'466島_isl_cold_3':11000,
+            '472島_isl_cold_3':11000,'472島_isl_cold_6':11000,
+            '472島_isl_cold_1':9000,'427島_isl_one_3':-9000,
+            '430島_isl_one_3':-9000,'466島_isl_cold_1':-9000,
+            '466島_isl_cold_5':-9000,'469島_isl_one_3':-9000,
+            '469島_isl_one_6':-9000,'472島_isl_one_0':-9000,
+            '472島_isl_cold_5':-9000,
+          };
+          var IB=MACHINE==='eva'?IB_EVA:IB_DAIKAI;
           islPatBonus=IB[myIsl+'_'+islPat+'_'+tDigit2]||0;
         }
       }

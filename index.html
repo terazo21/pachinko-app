@@ -1208,13 +1208,118 @@ function renderUpload(){
 function updEvInd(v){const el=document.getElementById('evInd');if(!el)return;const e=isEv(v);el.className='ev-ind '+(e?'yes':'no');el.textContent=e?`🎯 ${evTypeName(v)}（スコアに加重）`:'通常日';}
 function delR(i){DB.splice(i,1);saveDB();render();}
 
+function getTodayDigitSummary(){
+  var today = todayStr();
+  var digit = new Date(today).getDate() % 10;
+
+  // 機種別ボーナステーブルから傾向を取得
+  var DP_DAIKAI = {
+    '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
+    '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
+    '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
+    '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
+    '3_neutral':-6000,'0_warm':-6000,
+  };
+  var DP_EVA = {
+    '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
+    '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
+    '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
+  };
+  var DP = MACHINE==='eva' ? DP_EVA : DP_DAIKAI;
+
+  // 過去実績から今日の日付パターン別10k+率を計算
+  var dates = getDates().slice().reverse(); // 古い順
+  var digitStats = {}; // pat -> {hot, total}
+  ['hot','warm','neutral','cold'].forEach(function(p){ digitStats[p]={hot:0,total:0}; });
+
+  for(var i=1; i<dates.length; i++){
+    var d = dates[i];
+    if(new Date(d).getDate()%10 !== digit) continue;
+    var prevDate = dates[i-1];
+    var dayRows = getByDate(d);
+    var prevRows = getByDate(prevDate);
+    dayRows.forEach(function(r){
+      var prev = prevRows.find(function(p){return p.u===r.u;});
+      if(!prev) return;
+      var pat = prev.差玉>=10000?'hot':prev.差玉>=5000?'warm':prev.差玉>=0?'neutral':'cold';
+      digitStats[pat].total++;
+      if(r.差玉>=10000) digitStats[pat].hot++;
+    });
+  }
+
+  // 全体ベースライン
+  var allHot=0, allTotal=0;
+  getDates().forEach(function(d){ getByDate(d).forEach(function(r){ allTotal++; if(r.差玉>=10000)allHot++; }); });
+  var baseline = allTotal>0 ? allHot/allTotal*100 : 29;
+
+  // 良いパターン・悪いパターンを抽出
+  var goods=[], bads=[];
+  ['hot','warm','neutral','cold'].forEach(function(pat){
+    var s = digitStats[pat];
+    if(s.total<3) return;
+    var rate = s.hot/s.total*100;
+    var diff = rate - baseline;
+    var patJp = pat==='hot'?'前日10k+台':pat==='warm'?'前日5k+台':pat==='neutral'?'前日プラス台':'前日マイナス台';
+    if(diff >= 8) goods.push({pat:patJp, rate:Math.round(rate), diff:Math.round(diff), n:s.total});
+    if(diff <= -8) bads.push({pat:patJp, rate:Math.round(rate), diff:Math.round(diff), n:s.total});
+  });
+  goods.sort(function(a,b){return b.diff-a.diff;});
+  bads.sort(function(a,b){return a.diff-b.diff;});
+
+  // 全体の今日の日付の出現率
+  var todayDigitAll = {hot:0,total:0};
+  getDates().forEach(function(d){
+    if(new Date(d).getDate()%10!==digit) return;
+    getByDate(d).forEach(function(r){
+      todayDigitAll.total++;
+      if(r.差玉>=10000) todayDigitAll.hot++;
+    });
+  });
+  var todayRate = todayDigitAll.total>0 ? Math.round(todayDigitAll.hot/todayDigitAll.total*100) : null;
+  var rateVsBase = todayRate!=null ? todayRate-Math.round(baseline) : 0;
+  var rateColor = rateVsBase>=5?'var(--green)':rateVsBase<=-5?'var(--red)':'var(--text2)';
+  var rateMark = rateVsBase>=5?'↑':rateVsBase<=-5?'↓':'→';
+
+  var html='';
+  html+='<div style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;margin-bottom:14px;">';
+  html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">';
+  html+='<span style="font-size:13px;font-weight:600;color:var(--text);">📆 今日は<span style="color:var(--accent);font-family:var(--fm);">'+new Date(today).getDate()+'日</span>（下一桁'+digit+'の日）</span>';
+  if(todayRate!=null){
+    html+='<span style="font-size:12px;color:'+rateColor+';font-family:var(--fm);">'+rateMark+' 過去実績 '+todayRate+'%（全体平均比'+(rateVsBase>=0?'+':'')+rateVsBase+'%pt）</span>';
+  }
+  html+='</div>';
+
+  if(goods.length===0 && bads.length===0){
+    html+='<div style="font-size:12px;color:var(--text3);">データ蓄積中（同じ日付が3回以上になると傾向が表示されます）</div>';
+  } else {
+    if(goods.length){
+      html+='<div style="margin-bottom:6px;">';
+      html+='<span style="font-size:11px;color:var(--green);font-weight:600;">🔥 出やすいパターン: </span>';
+      goods.forEach(function(g){
+        html+='<span style="font-size:11px;color:var(--text2);margin-right:10px;">'+g.pat+' '+g.rate+'%（+'+g.diff+'%pt / '+g.n+'日実績）</span>';
+      });
+      html+='</div>';
+    }
+    if(bads.length){
+      html+='<div>';
+      html+='<span style="font-size:11px;color:var(--red);font-weight:600;">❄️ 出にくいパターン: </span>';
+      bads.forEach(function(b){
+        html+='<span style="font-size:11px;color:var(--text2);margin-right:10px;">'+b.pat+' '+b.rate+'%（'+b.diff+'%pt / '+b.n+'日実績）</span>';
+      });
+      html+='</div>';
+    }
+  }
+  html+='</div>';
+  return html;
+}
+
 function renderRank(){
   const td=todayStr();const todayEv=isEv(td);
   const nev=nextEvInfo();
   const stats=buildStats();
   if(!stats.length)return`<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">データ不足</div></div>`;
   const hot=stats.filter(s=>s.avg>=10000||s.rate10k>=50).length;
-  let html='';
+  let html=getTodayDigitSummary();
   if(todayEv){
     html+=`<div class="ev-banner"><div class="ev-banner-icon">🎯</div><div class="ev-banner-body"><div class="ev-banner-title">今日は${evTypeName(td)}のイベント日です！</div><div class="ev-banner-sub">イベント日データを1.4倍に重み付けしたスコアで予想しています</div></div></div>`;
   } else if(nev&&nev.away<=3){

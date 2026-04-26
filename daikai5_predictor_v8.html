@@ -396,6 +396,48 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   .mrow{grid-template-columns:1fr !important;}
   .isl-all-grid{grid-template-columns:1fr !important;}
 }
+
+/* 台番号列固定 */
+.tw { overflow-x: auto; overflow-y: auto; max-height: 620px; -webkit-overflow-scrolling: touch; position: relative; }
+.tw table { border-collapse: collapse; }
+.tw th:first-child,
+.tw td:first-child {
+  position: -webkit-sticky;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--bg2);
+  box-shadow: 2px 0 6px rgba(0,0,0,0.5);
+  min-width: 48px;
+}
+.tw thead th {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg3);
+}
+.tw thead th:first-child { z-index: 4; background: var(--bg3); }
+/* スマホ強制適用 */
+@media screen and (max-width: 768px){
+  .tw th:first-child,
+  .tw td:first-child {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    left: 0 !important;
+    background: var(--bg2) !important;
+    z-index: 2 !important;
+  }
+  .tw thead th:first-child {
+    background: var(--bg3) !important;
+    z-index: 4 !important;
+  }
+}
+/* スクロールバー常時表示 */
+.tw::-webkit-scrollbar { height: 8px; display: block; }
+.tw::-webkit-scrollbar-track { background: var(--surface2); border-radius: 4px; }
+.tw::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.tw::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 </style>
 </head>
 <body>
@@ -796,6 +838,66 @@ function buildStats(overrideDB){
     const hotD2=n>1&&rows[n-2].差玉>=10000;
     const evBonus=evRows.length>0&&evAvg!=null&&evAvg>5000?W.evBonus:0;
     // 学習済み係数でスコア計算
+    // ===== 下一桁×前日パターンボーナス =====
+    var digitPatBonus=0;
+    try{
+      var latestDts=getDates();
+      if(latestDts.length>=1){
+        var prevDayStr=latestDts[0];
+        var tgt=todayStr();
+        var tDigit=new Date(tgt).getDate()%10;
+        var latestRow=getByDate(prevDayStr).find(function(r){return r.u===u;});
+        if(latestRow){
+          var prevDama=latestRow.差玉;
+          var prevPat=prevDama>=10000?'hot':prevDama>=5000?'warm':prevDama>=0?'neutral':'cold';
+          var DP={
+            '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
+            '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
+            '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
+            '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
+            '3_neutral':-6000,'0_warm':-6000,
+          };
+          digitPatBonus=DP[tDigit+'_'+prevPat]||0;
+        }
+      }
+    }catch(e){}
+
+    // ===== 島×前日島パターンボーナス =====
+    var islPatBonus=0;
+    try{
+      var latestDts2=getDates();
+      if(latestDts2.length>=1){
+        var prevDayStr2=latestDts2[0];
+        var tgt2=todayStr();
+        var tDigit2=new Date(tgt2).getDate()%10;
+        var prevDayRows=getByDate(prevDayStr2);
+        var ISL_DEF={
+          '556島':['556','557','558','559','560'],'561島':['561','562','563','564','565'],
+          '566島':['566','567','568','569','570'],'571島':['571','572','573','574','575'],
+          '576島':['576','577','578','579','580'],'581島':['581','582','583','584','585']
+        };
+        var myIsl=null;
+        Object.keys(ISL_DEF).forEach(function(n){if(ISL_DEF[n].indexOf(u)>=0)myIsl=n;});
+        if(myIsl){
+          var islUnits=ISL_DEF[myIsl];
+          var islRows=prevDayRows.filter(function(r){return islUnits.indexOf(r.u)>=0;});
+          var islHot=islRows.filter(function(r){return r.差玉>=10000;}).length;
+          var islAvg=islRows.length?islRows.reduce(function(s,r){return s+r.差玉;},0)/islRows.length:0;
+          var islPat=islHot>=2?'isl_hot':islHot===1?'isl_one':islAvg>=0?'isl_neutral':'isl_cold';
+          var IB={
+            '566島_isl_hot_7':-11520,'566島_isl_hot_9':9813,
+            '556島_isl_hot_1':8480,'556島_isl_one_1':8480,
+            '561島_isl_hot_9':8480,'571島_isl_hot_5':8480,
+            '571島_isl_one_1':8480,'576島_isl_one_4':8480,
+            '581島_isl_one_8':8480,'556島_isl_hot_7':-7519,
+            '561島_isl_hot_7':-7519,'566島_isl_one_3':-7519,
+            '566島_isl_one_4':-7519,
+          };
+          islPatBonus=IB[myIsl+'_'+islPat+'_'+tDigit2]||0;
+        }
+      }
+    }catch(e){}
+
     const score=
       avg*W.avg+
       max*W.max+
@@ -804,7 +906,9 @@ function buildStats(overrideDB){
       trend*W.trend+
       (hotY?W.hotY:0)+
       (hotD2?W.hotD2:0)+
-      evBonus;
+      evBonus+
+      digitPatBonus+
+      islPatBonus;
     return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,rows,vals};
   }).sort((a,b)=>b.score-a.score);
 }
@@ -956,11 +1060,7 @@ async function doAnalyze(){
   const date=document.getElementById('tdate').value||todayStr();
   setStatus('<span class="spin"></span>AIが解析中...','');
   const content=valid.map(b64=>({type:'image',source:{type:'base64',media_type:'image/png',data:b64}}));
-  content.push({type:'text',text:`これはパチンコホール「エクスアリーナ東京」のP大海物語５の遊技データ一覧画面です。
-表の各行から以下の列を左から順に読み取り、JSON配列のみで返してください（説明・マークダウン不要）。
-列順: 台番号, 現在スタート, 累計スタート, 総大当り, 最大持玉, 初当り, 確変当り, 7日間最高大当り回数, 大当り確率, 初当り確率
-出力形式: [{"台番号":"556","累計スタート":895,"総大当り":3,"最大持玉":3250,"初当り":2,"確変当り":1}]
-読み取れない値はnullにしてください。必ずJSON配列のみ返してください。`});
+  content.push({type:'text',text:`これはパチンコホール「エクスアリーナ東京」のP大海物語５の遊技データ一覧画面です。\n表の各行から以下の列を左から順に読み取り、JSON配列のみで返してください（説明・マークダウン不要）。\n列順: 台番号, 現在スタート, 累計スタート, 総大当り, 最大持玉, 初当り, 確変当り, 7日間最高大当り回数, 大当り確率, 初当り確率\n出力形式: [{"台番号":"556","累計スタート":895,"総大当り":3,"最大持玉":3250,"初当り":2,"確変当り":1}]\n\n重要な注意事項:\n- 数字は必ず正確に読み取ること。特に桁数に注意（例：3,386を1,386と誤読しない）\n- カンマ区切りの数値（例：3,386）は桁区切りであり、3386として読み取ること\n- 累計スタートは通常500〜9999の範囲。1000以上の値が多い\n- 最大持玉は通常0〜99999の範囲\n- 数字が不鮮明な場合は前後の行と比較して妥当な値を判断すること\n- 読み取れない値はnullにしてください。必ずJSON配列のみ返してください。`});
   try{
     const res=await fetch('http://localhost:5173/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':AK,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:4000,messages:[{role:'user',content}]})});
     if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
@@ -972,11 +1072,33 @@ async function doAnalyze(){
     parsed.forEach(row=>{
       if(!row['台番号'])return;
       const 総=Number(row['総大当り'])||0,累=Number(row['累計スタート'])||0,確=Number(row['確変当り'])||0,初=Number(row['初当り'])||0,最大=Number(row['最大持玉'])||0;
-      const entry={date,u:String(row['台番号']),総,累,確,初,最大,差玉:calcDama(総,累,確,初)};
+      const 初確率p=row['初当り確率']?String(row['初当り確率']).replace('1/','').trim():null;
+      const 初確率=初確率p?Number(初確率p):null;
+      const entry={date,u:String(row['台番号']),総,累,確,初,最大,差玉:calcDama(総,累,確,初),初確率};
       const dup=DB.find(r=>r.date===date&&r.u===entry.u);
       if(dup)Object.assign(dup,entry);else DB.push(entry);
       added++;
     });
+    // ===== 初当り確率との整合性チェック =====
+    // 検証方法: 累計ST ÷ 初当り回数 = 実測確率分母
+    //           読み取った初当り確率分母と比較して乖離を検出
+    var probWarnings=[];
+    DB.filter(function(r){return r.date===date;}).forEach(function(r){
+      if(!r.初確率||!r.累||!r.初||r.初===0) return;
+      // 実測の初当り確率分母 = 累計ST ÷ 初当り回数
+      var actualRate=Math.round(r.累/r.初);
+      // 読み取った初当り確率分母
+      var readRate=r.初確率;
+      var diff=Math.abs(actualRate-readRate)/readRate;
+      // ±35%以上乖離していたら警告
+      if(diff>0.35 && r.累>300){
+        probWarnings.push('台'+r.u+': 累計ST='+r.累.toLocaleString()+', 初当り='+r.初+'回 → 実測1/'+actualRate+' vs 読取1/'+readRate+' (乖離'+Math.round(diff*100)+'%)');
+      }
+    });
+    if(probWarnings.length>0){
+      var msg='【要確認】初当り確率と累計STの整合性に問題があります:\n\n'+probWarnings.join('\n')+'\n\n累計STや初当り回数が誤認識されている可能性があります。\n蓄積データタブで数値をクリックして修正できます。';
+      setTimeout(function(){alert(msg);},500);
+    }
     await saveDB();learnWeights();PB=[];
     const evStr=isEv(date)?`（🎯 ${evTypeName(date)}として記録）`:'';
     setStatus(`✓ ${added}台分を追加 (${date}) ${evStr}`,'ok');
@@ -1049,7 +1171,11 @@ function renderUpload(){
         <td style="font-family:var(--fm);font-size:11px;color:var(--text2);">${r.date}</td>
         <td>${ev2?`<span class="bdg bdg-ev">🎯 ${evTypeName(r.date)}</span>`:'<span style="font-size:11px;color:var(--text3);">通常</span>'}</td>
         <td style="text-align:right;"><span class="dn">${r.u}</span></td>
-        <td>${r.総}回</td><td>${r.累.toLocaleString()}</td><td>${r.確}回</td><td>${r.初}回</td><td>${r.最大.toLocaleString()}</td>
+        <td onclick="editCell(${ri},'総',${r.総})" style="cursor:pointer;" title="クリックで編集">${r.総}回</td>
+        <td onclick="editCell(${ri},'累',${r.累})" style="cursor:pointer;" title="クリックで編集">${r.累.toLocaleString()}</td>
+        <td onclick="editCell(${ri},'確',${r.確})" style="cursor:pointer;" title="クリックで編集">${r.確}回</td>
+        <td onclick="editCell(${ri},'初',${r.初})" style="cursor:pointer;" title="クリックで編集">${r.初}回</td>
+        <td onclick="editCell(${ri},'最大',${r.最大})" style="cursor:pointer;" title="クリックで編集">${r.最大.toLocaleString()}</td>
         <td><span class="dv ${dc(r.差玉)}">${fmt(r.差玉)}</span></td>
         <td><button class="bsm d" onclick="delR(${ri})" style="padding:2px 7px;font-size:10px;">削除</button></td>
       </tr>`;
@@ -1804,6 +1930,24 @@ function closeTaiModal(){
 }
 
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeTaiModal();});
+
+
+// ===== セル編集機能 =====
+function editCell(idx, field, currentVal){
+  var labels = {'総':'総大当り(回)', '累':'累計ST(回)', '確':'確変当り(回)', '初':'初当り(回)', '最大':'最大持玉(発)'};
+  var label = labels[field] || field;
+  var newVal = prompt(label + ' を修正してください', currentVal);
+  if(newVal === null) return; // キャンセル
+  var num = parseInt(newVal.replace(/,/g,''));
+  if(isNaN(num) || num < 0){
+    alert('正しい数値を入力してください');
+    return;
+  }
+  DB[idx][field] = num;
+  // 差玉を再計算
+  DB[idx].差玉 = calcDama(DB[idx].総, DB[idx].累, DB[idx].確, DB[idx].初);
+  saveDB().then(function(){ learnWeights(); render(); });
+}
 
 // 起動時の非同期初期化
 (async()=>{

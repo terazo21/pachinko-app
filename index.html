@@ -656,7 +656,7 @@ function getRecent7(){return DB;} // 全期間データを使用
 function getRecentN(n){const c=new Date();c.setDate(c.getDate()-n);return DB.filter(r=>new Date(r.date)>=c);}
 
 // 検証対象外の台判定（累計ST500以下かつ大当り0回 = 未稼働・開店直後）
-function isValidActual(r){return!(r.累<=500&&r.総===0);}
+function isValidActual(r){return r.累>1000;} // 累計ST1000以下は除外
 
 // ===== 島グループ定義 =====
 // エヴァの固定島グループ定義（3台×6島）

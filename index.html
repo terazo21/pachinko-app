@@ -867,6 +867,7 @@ function buildStats(overrideDB){
           };
           var DP=MACHINE==='eva'?DP_EVA:DP_DAIKAI;
           digitPatBonus=DP[tDigit+'_'+prevPat]||0;
+          _patBadgeCache[u]=(digitPatBonus||0); // バッジ用キャッシュ（islPatは後で加算）
         }
       }
     }catch(e){}
@@ -919,6 +920,7 @@ function buildStats(overrideDB){
           };
           var IB=MACHINE==='eva'?IB_EVA:IB_DAIKAI;
           islPatBonus=IB[myIsl+'_'+islPat+'_'+tDigit2]||0;
+          _patBadgeCache[u]=(_patBadgeCache[u]||0)+islPatBonus; // バッジ用キャッシュに島ボーナスも加算
         }
       }
     }catch(e){}
@@ -934,7 +936,7 @@ function buildStats(overrideDB){
       evBonus+
       digitPatBonus+
       islPatBonus;
-    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,rows,vals};
+    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,digitPatBonus,islPatBonus,rows,vals};
   }).sort((a,b)=>b.score-a.score);
 }
 
@@ -1335,6 +1337,9 @@ function renderRank(){
   const nev=nextEvInfo();
   const stats=buildStats();
   if(!stats.length)return`<div class="empty"><div class="empty-ico">📊</div><div class="empty-txt">データ不足</div></div>`;
+  // buildStats後にバッジキャッシュを再構築
+  _patBadgeCache={};
+  stats.forEach(function(s){ _patBadgeCache[s.u]=(s.digitPatBonus||0)+(s.islPatBonus||0); });
   const hot=stats.filter(s=>s.avg>=10000||s.rate10k>=50).length;
   let html=getTodayDigitSummary();
   if(todayEv){
@@ -1450,6 +1455,9 @@ function renderIsland(){
 
 function renderTrend(){
   const stats=buildStats();
+  // buildStats後にバッジキャッシュを再構築
+  _patBadgeCache={};
+  stats.forEach(function(s){ _patBadgeCache[s.u]=(s.digitPatBonus||0)+(s.islPatBonus||0); });
   if(!stats.length)return`<div class="empty"><div class="empty-ico">📈</div><div class="empty-txt">データ不足</div></div>`;
   const sorted=[...stats].sort((a,b)=>b.trend-a.trend);
   const top=sorted[0],bot=sorted[sorted.length-1];
@@ -2053,40 +2061,14 @@ function switchMachine(id, btn){
 
 
 // ===== 今日の日付パターンバッジ =====
+var _patBadgeCache = {};
 function getTodayPatBadge(u){
-  var today = todayStr();
-  var digit = new Date(today).getDate() % 10;
-  var dates = getDates().slice().reverse(); // 古い順
-  if(dates.length < 2) return '';
-
-  // 前日データから前日パターンを取得
-  var prevDate = dates[dates.length - 1]; // 最新日の前日
-  if(dates.length >= 2) prevDate = dates[dates.length - 2];
-  var prevRow = getByDate(prevDate).find(function(r){ return r.u === u; });
-  if(!prevRow) return '';
-
-  var prevPat = prevRow.差玉>=10000?'hot':prevRow.差玉>=5000?'warm':prevRow.差玉>=0?'neutral':'cold';
-
-  // 機種別ボーナステーブル
-  var DP_D = {
-    '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
-    '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
-    '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
-    '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
-    '3_neutral':-6000,'0_warm':-6000,
-  };
-  var DP_E = {
-    '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
-    '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
-    '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
-  };
-  var DP = MACHINE==='eva' ? DP_E : DP_D;
-  var bonus = DP[digit+'_'+prevPat] || 0;
-
-  if(bonus >= 8000)  return '<span style="font-size:11px;margin-right:4px;" title="今日出やすいパターン">🔥</span>';
-  if(bonus >= 4000)  return '<span style="font-size:11px;margin-right:4px;" title="やや出やすいパターン">🔶</span>';
-  if(bonus <= -8000) return '<span style="font-size:11px;margin-right:4px;" title="今日出にくいパターン">❄️</span>';
-  if(bonus <= -4000) return '<span style="font-size:11px;margin-right:4px;" title="やや出にくいパターン">🔷</span>';
+  var bonus = _patBadgeCache[u];
+  if(bonus === undefined) return '';
+  if(bonus >= 10000) return '<span style="font-size:11px;margin-right:4px;" title="出やすい(+'+Math.round(bonus/1000)+'k)">🔥</span>';
+  if(bonus >= 5000)  return '<span style="font-size:11px;margin-right:4px;" title="やや出やすい(+'+Math.round(bonus/1000)+'k)">🔶</span>';
+  if(bonus <= -10000)return '<span style="font-size:11px;margin-right:4px;" title="出にくい('+Math.round(bonus/1000)+'k)">❄️</span>';
+  if(bonus <= -5000) return '<span style="font-size:11px;margin-right:4px;" title="やや出にくい('+Math.round(bonus/1000)+'k)">🔷</span>';
   return '';
 }
 

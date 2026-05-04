@@ -494,8 +494,10 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   </div>
   <div class="sb-div"></div>
   <div class="day-nav">
-    <div class="sb-lbl">日別データ</div>
-    <div id="dayBtns"></div>
+    <button class="nb" onclick="toggleDayNav(this)" id="dayNavToggle" style="width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between;">
+      <span>📅 日別データ</span><span id="dayNavArrow">▶</span>
+    </button>
+    <div id="dayBtns" style="display:none;"></div>
   </div>
 </aside>
 <main class="content" id="content"></main>
@@ -1026,6 +1028,21 @@ function updateChips(){
 }
 
 // ===== サイドバー日付ボタン =====
+function toggleDayNav(btn){
+  var el=document.getElementById('dayBtns');
+  var arrow=document.getElementById('dayNavArrow');
+  if(!el) return;
+  if(el.style.display==='none'){
+    el.style.display='block';
+    if(arrow) arrow.textContent='▼';
+    btn.classList.add('active');
+  } else {
+    el.style.display='none';
+    if(arrow) arrow.textContent='▶';
+    btn.classList.remove('active');
+  }
+}
+
 function renderDayBtns(){
   const el=document.getElementById('dayBtns');if(!el)return;
   const dates=getDates();
@@ -1436,7 +1453,9 @@ function renderTrend(){
   if(!stats.length)return`<div class="empty"><div class="empty-ico">📈</div><div class="empty-txt">データ不足</div></div>`;
   const sorted=[...stats].sort((a,b)=>b.trend-a.trend);
   const top=sorted[0],bot=sorted[sorted.length-1];
-  const dates=[...new Set(getRecent7().map(r=>r.date))].sort();
+  // 直近10日分のみ表示
+  const allDates=getDates().slice(0,10).reverse(); // 最新10日を古い順に
+  const dates=allDates;
   let html=`<div class="mrow">
     <div class="mc"><div class="mc-lbl">最上昇台</div><div class="mc-val green">台${top.u}</div></div>
     <div class="mc"><div class="mc-lbl">上昇幅</div><div class="mc-val green">${fmt(top.trend)}</div></div>

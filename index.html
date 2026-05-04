@@ -1361,9 +1361,9 @@ function renderRank(){
     html+=`<div class="rc2 ${cls}">
       <div class="rno">${i+1}</div>
       <div class="rb2">
-        <div class="rhead"><span class="rdai" style="cursor:pointer;" onclick="showTaiDetail('${s.u}')">台 <u>${s.u}</u></span>${getBadge(i)}
+        <div class="rhead">${getTodayPatBadge(s.u)}<span class="rdai" style="cursor:pointer;" onclick="showTaiDetail('${s.u}')">台 <u>${s.u}</u></span>${getBadge(i)}
           ${s.hotY?'<span class="bdg bdg-s">直近好調</span>':''}
-          ${s.evRows>0?`<span class="bdg bdg-ev">🎯 ${s.evRows}日</span>`:''}
+          
         </div>
         <div class="rreason">${reasons.join('　/　')||'安定した出玉傾向を確認'}</div>
         <div class="rstats">
@@ -1467,7 +1467,7 @@ function renderTrend(){
     ${dates.map(d=>`<th>${d.slice(5)}${isEv(d)?'🎯':''}</th>`).join('')}
   </tr></thead><tbody>`;
   sorted.forEach(s=>{
-    html+=`<tr><td><span class="dn">${s.u}</span></td>
+    html+=`<tr><td>${getTodayPatBadge(s.u)}<span class="dn">${s.u}</span></td>
       <td><span class="dv ${s.trend>=0?'hot':'cold'}">${fmt(s.trend)}</span></td>
       ${dates.map(d=>{const row=s.rows.find(r=>r.date===d);if(!row)return`<td style="color:var(--text3);">-</td>`;return`<td><span class="mv ${dc(row.差玉)}${isEv(d)?' em':''}">${fmt(row.差玉)}</span></td>`;}).join('')}
     </tr>`;
@@ -2050,6 +2050,45 @@ function switchMachine(id, btn){
   });
 }
 
+
+
+// ===== 今日の日付パターンバッジ =====
+function getTodayPatBadge(u){
+  var today = todayStr();
+  var digit = new Date(today).getDate() % 10;
+  var dates = getDates().slice().reverse(); // 古い順
+  if(dates.length < 2) return '';
+
+  // 前日データから前日パターンを取得
+  var prevDate = dates[dates.length - 1]; // 最新日の前日
+  if(dates.length >= 2) prevDate = dates[dates.length - 2];
+  var prevRow = getByDate(prevDate).find(function(r){ return r.u === u; });
+  if(!prevRow) return '';
+
+  var prevPat = prevRow.差玉>=10000?'hot':prevRow.差玉>=5000?'warm':prevRow.差玉>=0?'neutral':'cold';
+
+  // 機種別ボーナステーブル
+  var DP_D = {
+    '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
+    '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
+    '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
+    '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
+    '3_neutral':-6000,'0_warm':-6000,
+  };
+  var DP_E = {
+    '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
+    '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
+    '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
+  };
+  var DP = MACHINE==='eva' ? DP_E : DP_D;
+  var bonus = DP[digit+'_'+prevPat] || 0;
+
+  if(bonus >= 8000)  return '<span style="font-size:11px;margin-right:4px;" title="今日出やすいパターン">🔥</span>';
+  if(bonus >= 4000)  return '<span style="font-size:11px;margin-right:4px;" title="やや出やすいパターン">🔶</span>';
+  if(bonus <= -8000) return '<span style="font-size:11px;margin-right:4px;" title="今日出にくいパターン">❄️</span>';
+  if(bonus <= -4000) return '<span style="font-size:11px;margin-right:4px;" title="やや出にくいパターン">🔷</span>';
+  return '';
+}
 
 // ===== 台詳細モーダル =====
 function showTaiDetail(u){

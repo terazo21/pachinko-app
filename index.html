@@ -482,6 +482,7 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
   <div class="sb-sec">
     <div class="sb-lbl">予想</div>
     <button class="nb active" onclick="sv('rank',this)"><span>🏆</span>おすすめ台ランキング</button>
+    <button class="nb" id="patMenuBtn" style="display:none;" onclick="sv('pattern',this)"><span>📆</span>パターン予想</button>
     <button class="nb" onclick="sv('island',this)"><span>🏝</span>おすすめ島予想</button>
     <button class="nb" onclick="sv('trend',this)"><span>📈</span>直近トレンド</button>
     <button class="nb" onclick="sv('evcomp',this)"><span>🎯</span>イベント日比較</button>
@@ -1837,7 +1838,7 @@ function renderVerify(){
 
 // ===== RENDER =====
 function render(){
-  renderDayBtns();updateChips();
+  renderDayBtns();updateChips();updatePatternMenu();
   const el=document.getElementById('content');
   if(CV==='upload')el.innerHTML=renderUpload();
   else if(CV==='rank')el.innerHTML=renderRank();
@@ -1847,6 +1848,7 @@ function render(){
   else if(CV==='avg')el.innerHTML=renderAvg();
   else if(CV==='day')el.innerHTML=renderDay();
   else if(CV==='retire')el.innerHTML=renderRetire();
+  else if(CV==='pattern')el.innerHTML=renderPattern();
   else if(CV==='verify')el.innerHTML=renderVerify();
   const ak=document.getElementById('akInp');if(ak)ak.value=AK;
 }
@@ -2152,6 +2154,114 @@ function editCell(idx, field, currentVal){
   // 差玉を再計算
   DB[idx].差玉 = calcDama(DB[idx].総, DB[idx].累, DB[idx].確, DB[idx].初);
   saveDB().then(function(){ learnWeights(); render(); });
+}
+
+
+// ===== パターン予想 =====
+function getPatternMatchUnits(){
+  var today = todayStr();
+  var digit = new Date(today).getDate() % 10;
+  var dates = getDates();
+  if(!dates.length) return [];
+  var prevDate = dates[0];
+  var prevData = getByDate(prevDate);
+
+  var DP_D = {
+    '4_neutral':15000,'8_neutral':12000,'1_neutral':10000,
+    '9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,
+    '4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,
+    '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
+    '3_neutral':-6000,'0_warm':-6000,
+  };
+  var DP_E = {
+    '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
+    '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
+    '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
+  };
+  var DP = MACHINE==='eva' ? DP_E : DP_D;
+
+  var matches = [];
+  prevData.forEach(function(r){
+    var pat = r.差玉>=10000?'hot':r.差玉>=5000?'warm':r.差玉>=0?'neutral':'cold';
+    var bonus = DP[digit+'_'+pat] || 0;
+    if(bonus > 0) matches.push({u:r.u, prevDama:r.差玉, pat:pat, bonus:bonus});
+  });
+  return matches.sort(function(a,b){ return b.bonus-a.bonus; });
+}
+
+function updatePatternMenu(){
+  var matches = getPatternMatchUnits();
+  var btn = document.getElementById('patMenuBtn');
+  if(!btn) return;
+  if(matches.length > 0){
+    btn.style.display = 'flex';
+    btn.querySelector('span').textContent = '📆';
+    btn.childNodes[1] && (btn.childNodes[1].textContent = 'パターン予想（'+matches.length+'台）');
+  } else {
+    btn.style.display = 'none';
+    if(CV==='pattern'){ CV='rank'; render(); }
+  }
+}
+
+function renderPattern(){
+  var today = todayStr();
+  var digit = new Date(today).getDate() % 10;
+  var matches = getPatternMatchUnits();
+  var stats = buildStats();
+
+  if(!matches.length){
+    return '<div class="empty"><div class="empty-ico">📆</div><div class="empty-txt">今日はパターン一致台がありません</div></div>';
+  }
+
+  var PAT_JP = {hot:'前日10k+',warm:'前日5k+',neutral:'前日プラス',cold:'前日マイナス'};
+  var patTypes = [...new Set(matches.map(function(m){return m.pat;}))];
+  var patDesc = patTypes.map(function(p){return PAT_JP[p]||p;}).join('・');
+
+  var html = '';
+  html += '<div style="background:var(--surface);border:1px solid var(--ev-border);border-radius:10px;padding:12px 16px;margin-bottom:14px;">';
+  html += '<div style="font-size:13px;font-weight:600;color:var(--ev);margin-bottom:4px;">📆 今日（'+new Date(today).getDate()+'日・下一桁'+digit+'）のパターン一致台</div>';
+  html += '<div style="font-size:12px;color:var(--text2);">出やすいパターン: <b>'+patDesc+'</b>（'+matches.length+'台該当）</div>';
+  html += '</div>';
+
+  // パターン一致台を基本スコア順で表示
+  var statMap = {};
+  stats.forEach(function(s){ statMap[s.u]=s; });
+
+  var ranked = matches.filter(function(m){ return statMap[m.u]; })
+    .sort(function(a,b){
+      var sa = statMap[a.u] ? statMap[a.u].score : 0;
+      var sb = statMap[b.u] ? statMap[b.u].score : 0;
+      return sb - sa;
+    });
+
+  ranked.forEach(function(m, i){
+    var s = statMap[m.u];
+    if(!s) return;
+    var rank = i+1;
+    var rankCol = rank===1?'var(--gold)':rank===2?'var(--silver)':rank===3?'var(--bronze)':'var(--text2)';
+    var patJp = PAT_JP[m.pat]||m.pat;
+    var bonusK = Math.round(m.bonus/1000);
+
+    html += '<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start;">';
+    html += '<div style="font-size:28px;font-weight:700;color:'+rankCol+';font-family:var(--fm);min-width:28px;">'+rank+'</div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+    html += '<span style="font-size:16px;font-weight:700;font-family:var(--fm);">台 <u style="cursor:pointer;" onclick="showTaiDetail(''+m.u+'')">'+m.u+'</u></span>';
+    html += '<span style="font-size:11px;background:rgba(0,200,100,0.15);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 8px;">🔥 '+patJp+'（+'+bonusK+'k）</span>';
+    if(s.hotY) html += '<span class="bdg bdg-s">直近好調</span>';
+    html += '</div>';
+    html += '<div style="font-size:12px;color:var(--text2);margin-bottom:6px;">';
+    html += '前日差玉: <b style="color:'+(m.prevDama>=10000?'var(--green)':m.prevDama>=0?'var(--orange)':'var(--red)')+'">'+fmt(m.prevDama)+'</b>';
+    html += ' &nbsp;|&nbsp; 加重平均: <b style="color:'+dc(s.avg)+'">'+fmt(s.avg)+'</b>';
+    html += ' &nbsp;|&nbsp; 10k超え: <b>'+s.cnt10k+'/'+(s.rows?s.rows.length:'-')+'日</b>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--text3);">';
+    html += '最大 <b>'+fmt(s.max)+'</b> &nbsp; トレンド <b style="color:'+(s.trend>=0?'var(--green)':'var(--red)')+'">'+fmt(s.trend)+'</b> &nbsp; イベント平均 <b>'+fmt(s.evAvg)+'</b>';
+    html += '</div>';
+    html += '</div></div>';
+  });
+
+  return html;
 }
 
 // 起動時の非同期初期化

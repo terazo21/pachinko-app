@@ -2196,7 +2196,14 @@ function updatePatternMenu(){
   if(matches.length > 0){
     btn.style.display = 'flex';
     btn.querySelector('span').textContent = '📆';
-    btn.childNodes[1] && (btn.childNodes[1].textContent = 'パターン予想（'+matches.length+'台）');
+    // ボタンのテキスト更新（span以外のテキストノードを更新）
+    var btnText = btn.childNodes;
+    for(var ni=0;ni<btnText.length;ni++){
+      if(btnText[ni].nodeType===3){ // テキストノード
+        btnText[ni].textContent = 'パターン予想（'+matches.length+'台）';
+        break;
+      }
+    }
   } else {
     btn.style.display = 'none';
     if(CV==='pattern'){ CV='rank'; render(); }
@@ -2246,7 +2253,7 @@ function renderPattern(){
     html += '<div style="font-size:28px;font-weight:700;color:'+rankCol+';font-family:var(--fm);min-width:28px;">'+rank+'</div>';
     html += '<div style="flex:1;">';
     html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-    html += '<span style="font-size:16px;font-weight:700;font-family:var(--fm);">台 <u style="cursor:pointer;" onclick="showTaiDetail(''+m.u+'')">'+m.u+'</u></span>';
+    html += '<span style="font-size:16px;font-weight:700;font-family:var(--fm);">台 <u style="cursor:pointer;" onclick="showTaiDetail(this.dataset.u)" data-u="'+m.u+'">'+m.u+'</u></span>';
     html += '<span style="font-size:11px;background:rgba(0,200,100,0.15);color:var(--green);border:1px solid var(--green);border-radius:4px;padding:2px 8px;">🔥 '+patJp+'（+'+bonusK+'k）</span>';
     if(s.hotY) html += '<span class="bdg bdg-s">直近好調</span>';
     html += '</div>';

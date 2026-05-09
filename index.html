@@ -1117,29 +1117,36 @@ async function doAnalyze(){
       const 総=Number(row['総大当り'])||0,累=Number(row['累計スタート'])||0,確=Number(row['確変当り'])||0,初=Number(row['初当り'])||0,最大=Number(row['最大持玉'])||0;
       const 初確率p=row['初当り確率']?String(row['初当り確率']).replace('1/','').trim():null;
       const 初確率=初確率p?Number(初確率p):null;
-      const entry={date,u:String(row['台番号']),総,累,確,初,最大,差玉:calcDama(総,累,確,初),初確率};
+      const 大確率p=row['大当り確率']?String(row['大当り確率']).replace('1/','').trim():null;
+      const 大確率=大確率p?Number(大確率p):null;
+      const entry={date,u:String(row['台番号']),総,累,確,初,最大,差玉:calcDama(総,累,確,初),初確率,大確率};
       const dup=DB.find(r=>r.date===date&&r.u===entry.u);
       if(dup)Object.assign(dup,entry);else DB.push(entry);
       added++;
     });
     // ===== 初当り確率との整合性チェック =====
-    // 検証方法: 累計ST ÷ 初当り回数 = 実測確率分母
-    //           読み取った初当り確率分母と比較して乖離を検出
     var probWarnings=[];
     DB.filter(function(r){return r.date===date;}).forEach(function(r){
       if(!r.初確率||!r.累||!r.初||r.初===0) return;
-      // 実測の初当り確率分母 = 累計ST ÷ 初当り回数
       var actualRate=Math.round(r.累/r.初);
-      // 読み取った初当り確率分母
       var readRate=r.初確率;
       var diff=Math.abs(actualRate-readRate)/readRate;
-      // ±35%以上乖離していたら警告
       if(diff>0.35 && r.累>300){
-        probWarnings.push('台'+r.u+': 累計ST='+r.累.toLocaleString()+', 初当り='+r.初+'回 → 実測1/'+actualRate+' vs 読取1/'+readRate+' (乖離'+Math.round(diff*100)+'%)');
+        probWarnings.push('台'+r.u+': 初当り'+r.初+'回 → 実測1/'+actualRate+' vs 読取1/'+readRate+' (乖離'+Math.round(diff*100)+'%)');
+      }
+
+      // ===== 大当り回数チェック =====
+      if(r.大確率&&r.総&&r.総>0&&r.累>300){
+        // 期待大当り回数 = 累計ST ÷ 大当り確率分母
+        var expectedTotal=r.累/r.大確率;
+        var diffTotal=Math.abs(r.総-expectedTotal)/expectedTotal;
+        if(diffTotal>0.35){
+          probWarnings.push('台'+r.u+': 大当り'+r.総+'回 → 期待値'+Math.round(expectedTotal)+'回 (確率1/'+r.大確率+', 乖離'+Math.round(diffTotal*100)+'%) ※大当り回数の誤読み取りの可能性');
+        }
       }
     });
     if(probWarnings.length>0){
-      var msg='【要確認】初当り確率と累計STの整合性に問題があります:\n\n'+probWarnings.join('\n')+'\n\n累計STや初当り回数が誤認識されている可能性があります。\n蓄積データタブで数値をクリックして修正できます。';
+      var msg='【要確認】以下の台で数値の乖離があります:\n\n'+probWarnings.join('\n')+'\n\n誤認識の可能性があります。蓄積データタブで数値をクリックして修正できます。';
       setTimeout(function(){alert(msg);},500);
     }
     await saveDB();learnWeights();PB=[];

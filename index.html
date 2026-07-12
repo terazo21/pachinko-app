@@ -455,7 +455,6 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 <div style="display:flex;gap:6px;padding:0 14px;background:var(--bg2);border-bottom:1px solid var(--border);height:38px;align-items:center;">
   <span style="font-size:11px;color:var(--text3);">機種:</span>
   <button class="mt-btn active" id="tabDaikai" onclick="switchMachine('daikai',this)">🐟 大海物語5</button>
-  <button class="mt-btn" id="tabEva" onclick="switchMachine('eva',this)">🤖 エヴァ〜はじまりの記憶〜</button>
 </div>
 <div id="mobileBanner" style="display:none;background:var(--ev-bg);border-bottom:1px solid var(--ev-border);padding:7px 14px;align-items:center;justify-content:space-between;gap:10px;">
   <div style="font-size:12px;color:var(--ev);">📱 スマホ閲覧モード</div>
@@ -507,10 +506,32 @@ tr.rev-row td:first-child{border-left:2px solid var(--ev);}
 
 <script>
 
+
+// ===== 祝日定義 =====
+const JP_HOLIDAYS = new Set([
+  // 2026年
+  '2026-01-01','2026-01-12','2026-02-11','2026-02-23','2026-03-20',
+  '2026-04-29','2026-05-03','2026-05-04','2026-05-05','2026-05-06',
+  '2026-07-20','2026-08-11','2026-09-21','2026-09-22','2026-09-23',
+  '2026-10-12','2026-11-03','2026-11-23','2026-12-23',
+  // 2027年
+  '2027-01-01','2027-01-11','2027-02-11','2027-02-23','2027-03-21',
+  '2027-04-29','2027-05-03','2027-05-04','2027-05-05',
+  '2027-07-19','2027-08-11','2027-09-20','2027-09-23',
+  '2027-10-11','2027-11-03','2027-11-23',
+]);
+
+function getDayType(ds){
+  if(JP_HOLIDAYS.has(ds)) return 'hol';
+  var dow = new Date(ds).getDay(); // 0=日,6=土
+  if(dow===6) return 'sat';
+  if(dow===0) return 'sun';
+  return 'wkd';
+}
+
 // ===== 機種定義 =====
 const MACHINES={
   daikai:{id:'daikai',name:'大海物語5',formula:'差玉 = <b>大当り\u00d71300</b> \u2212 <b>(累計ST\u2212確変\u00d748\u2212初当り\u00d7100)\u00d713</b>',dataEp:'/data',wEp:'/weights',csv:'daikai5.csv'},
-  eva:{id:'eva',name:'エヴァ〜はじまりの記憶〜',formula:'差玉 = <b>(確変\u00d71120)+(初当り\u00d7280)</b> \u2212 <b>(累計ST\u2212確変\u00d731\u2212初当り\u00d7100)\u00d716</b>',dataEp:'/data_eva',wEp:'/weights_eva',csv:'eva.csv'},
 };
 let MACHINE='daikai';
 function getMC(){return MACHINES[MACHINE];}
@@ -533,35 +554,15 @@ async function readSupabase(machine){
 // ===== 機種別イベント日 =====
 const EV_RULES={
   daikai:{check:function(d){return d===5||d===15||d===25||d===11||d===22;},name:function(d){return(d===11||d===22)?'ゾロ目':'5のつく日';},desc:'5のつく日(5・15・25日)+ゾロ目(11・22日)'},
-  eva:{check:function(d){return d===10||d===20||d===30;},name:function(d){return '0のつく日';},desc:'0のつく日(10・20・30日)'},
 };
 
 // ===== 機種別差玉計算 =====
 function calcDamaDaikai(total,cum,kaku,hatsu){return Math.round(total*1300-(cum-(kaku*48)-(hatsu*100))*13);}
-function calcDamaEva(total,cum,kaku,hatsu){return Math.round((kaku*1120)+(hatsu*280)-(cum-(kaku*31)-(hatsu*100))*16);}
 
 // ===== スマホ閲覧モード =====
 var IS_MOBILE_MODE=false;
 function getApiBase(){return localStorage.getItem('pachinko_server')||'http://localhost:5173';}
 
-// ===== エヴァ初期データ =====
-const INIT_EVA=[
-  {u:"466",総:50,累:3582,確:44,初:6,最大:34430},
-  {u:"467",総:53,累:3256,確:48,初:5,最大:45150},
-  {u:"468",総:7, 累:1810,確:4, 初:3,最大:4100},
-  {u:"469",総:25,累:2287,確:20,初:5,最大:21760},
-  {u:"470",総:10,累:2810,確:6, 初:4,最大:6150},
-  {u:"471",総:22,累:2442,確:18,初:4,最大:15810},
-  {u:"472",総:44,累:3338,確:38,初:6,最大:32080},
-  {u:"473",総:20,累:3075,確:16,初:4,最大:15860},
-  {u:"474",総:31,累:2664,確:28,初:3,最大:20090},
-  {u:"475",総:24,累:3159,確:18,初:6,最大:15650},
-  {u:"476",総:17,累:2238,確:14,初:3,最大:15480},
-  {u:"477",総:51,累:4142,確:40,初:11,最大:38300},
-  {u:"478",総:21,累:2764,確:16,初:5,最大:13680},
-  {u:"479",総:35,累:3488,確:30,初:5,最大:18570},
-  {u:"480",総:2, 累:2598,確:0, 初:2,最大:0},
-].map(function(r){var d=new Date();d.setDate(d.getDate()-7);return Object.assign({},r,{date:d.toISOString().slice(0,10),差玉:calcDamaEva(r.総,r.累,r.確,r.初)});});
 
 // ===== イベント日判定 =====
 // 5のつく日（5・15・25）＋ゾロ目（11・22）
@@ -585,7 +586,6 @@ function nextEvInfo(){
 }
 
 function calcDama(総,累,確,初){
-  if(MACHINE==='eva') return calcDamaEva(総,累,確,初);
   return calcDamaDaikai(総,累,確,初);
 }
 function fmt(v){return(v>=0?'+':'')+v.toLocaleString();}
@@ -616,8 +616,8 @@ let DB=[];
 let DB_LOADED=false;
 
 async function loadDB(){
-  var calcFn=MACHINE==='eva'?calcDamaEva:calcDamaDaikai;
-  var src=MACHINE==='eva'?INIT_EVA:INIT;
+  var calcFn=calcDamaDaikai;
+  var src=INIT;
   if(IS_MOBILE_MODE){
     var row=await readSupabase(MACHINE);
     if(row&&Array.isArray(row.data)&&row.data.length>0){DB=row.data;DB_LOADED=true;return;}
@@ -641,8 +641,8 @@ async function saveDB(){
 function clearDB(){if(confirm('全データを削除しますか？')){DB=[];saveDB().then(()=>render());}}
 function resetDB(){
   if(confirm('初期データ（6日分）にリセットしますか？')){
-    var calcFn=MACHINE==='eva'?calcDamaEva:calcDamaDaikai;
-    var src=MACHINE==='eva'?INIT_EVA:INIT;
+    var calcFn=calcDamaDaikai;
+    var src=INIT;
     DB=src.map(function(r){return Object.assign({},r,{差玉:calcFn(r.総,r.累,r.確,r.初)});});
     saveDB().then(function(){render();});
   }
@@ -662,25 +662,8 @@ function getRecentN(n){const c=new Date();c.setDate(c.getDate()-n);return DB.fil
 function isValidActual(r){return r.累>1000;} // 累計ST1000以下は除外
 
 // ===== 島グループ定義 =====
-// エヴァの固定島グループ定義（3台×6島）
-const EVA_GROUPS=[
-  {label:'427〜429番台',start:427,units:['427','428','429']},
-  {label:'430〜432番台',start:430,units:['430','431','432']},
-  {label:'433〜435番台',start:433,units:['433','434','435']},
-  {label:'466〜468番台',start:466,units:['466','467','468']},
-  {label:'469〜471番台',start:469,units:['469','470','471']},
-  {label:'472〜474番台',start:472,units:['472','473','474']},
-];
 
 function buildGroups(units){
-  // エヴァは固定グループを使用
-  if(MACHINE==='eva'){
-    var dbUnits=new Set(units);
-    return EVA_GROUPS.map(function(g){
-      var u=g.units.filter(function(u){return dbUnits.has(u);});
-      return {label:g.label,start:g.start,units:u.length?u:g.units};
-    });
-  }
   const sorted=units.slice().sort((a,b)=>+a-+b);
   const mn=+sorted[0],mx=+sorted[sorted.length-1];
   const groups=[];
@@ -861,12 +844,7 @@ function buildStats(overrideDB){
             '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
             '3_neutral':-6000,'0_warm':-6000,
           };
-          var DP_EVA={
-            '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
-            '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
-            '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
-          };
-          var DP=MACHINE==='eva'?DP_EVA:DP_DAIKAI;
+          var DP=DP_DAIKAI;
           digitPatBonus=DP[tDigit+'_'+prevPat]||0;
           _patBadgeCache[u]=(digitPatBonus||0); // バッジ用キャッシュ（islPatは後で加算）
         }
@@ -887,12 +865,7 @@ function buildStats(overrideDB){
           '566島':['566','567','568','569','570'],'571島':['571','572','573','574','575'],
           '576島':['576','577','578','579','580'],'581島':['581','582','583','584','585']
         };
-        var ISL_DEF_EVA={
-          '427島':['427','428','429'],'430島':['430','431','432'],
-          '433島':['433','434','435'],'466島':['466','467','468'],
-          '469島':['469','470','471'],'472島':['472','473','474']
-        };
-        var ISL_DEF=MACHINE==='eva'?ISL_DEF_EVA:ISL_DEF_DAIKAI;
+        var ISL_DEF=ISL_DEF_DAIKAI;
         var myIsl=null;
         Object.keys(ISL_DEF).forEach(function(n){if(ISL_DEF[n].indexOf(u)>=0)myIsl=n;});
         if(myIsl){
@@ -910,19 +883,40 @@ function buildStats(overrideDB){
             '561島_isl_hot_7':-7519,'566島_isl_one_3':-7519,
             '566島_isl_one_4':-7519,
           };
-          var IB_EVA={
-            '469島_isl_cold_4':18000,'466島_isl_cold_3':11000,
-            '472島_isl_cold_3':11000,'472島_isl_cold_6':11000,
-            '472島_isl_cold_1':9000,'427島_isl_one_3':-9000,
-            '430島_isl_one_3':-9000,'466島_isl_cold_1':-9000,
-            '466島_isl_cold_5':-9000,'469島_isl_one_3':-9000,
-            '469島_isl_one_6':-9000,'472島_isl_one_0':-9000,
-            '472島_isl_cold_5':-9000,
-          };
-          var IB=MACHINE==='eva'?IB_EVA:IB_DAIKAI;
+          var IB=IB_DAIKAI;
           islPatBonus=IB[myIsl+'_'+islPat+'_'+tDigit2]||0;
           _patBadgeCache[u]=(_patBadgeCache[u]||0)+islPatBonus; // バッジ用キャッシュに島ボーナスも加算
         }
+      }
+    }catch(e){}
+
+    // ===== 4重ボーナス（日種別×下一桁×前日台パターン + 前日日種別） =====
+    var quadBonus=0;
+    try{
+      var latestDts3=getDates();
+      if(latestDts3.length>=1){
+        var prevDay3=latestDts3[0];
+        var tgt3=todayStr();
+        var tDt=getDayType(tgt3);
+        var tDig3=new Date(tgt3).getDate()%10;
+        var prevDt=getDayType(prevDay3);
+        var latestRow3=getByDate(prevDay3).find(function(r){return r.u===u;});
+        if(latestRow3){
+          var pd3=latestRow3.差玉;
+          var pp3=pd3>=10000?'hot':pd3>=5000?'warm':pd3>=0?'neutral':'cold';
+          var QB_D={
+            'sat_9_hot':12000,'hol_3_cold':14000,'hol_5_cold':12000,
+            'wkd_7_neutral':10000,'wkd_4_hot':10000,'wkd_1_neutral':10000,
+            'sat_1_cold':10000,'sat_0_cold':9000,'wkd_2_hot':9000,
+            'hol_0_neutral':9000,
+            'sat_4_hot':-20000,'wkd_5_warm':-12000,'wkd_9_warm':-12000,
+            'sun_7_cold':-12000,'wkd_2_neutral':-10000,'sat_4_cold':-9000,
+          };
+          var QB=QB_D;
+          quadBonus=(QB[tDt+'_'+tDig3+'_'+pp3]||0);
+        }
+        // 前日日種別ボーナス（前日日曜→今日月曜はペナルティ）
+        if(prevDt==='sun') quadBonus+=-3000;
       }
     }catch(e){}
 
@@ -936,8 +930,9 @@ function buildStats(overrideDB){
       (hotD2?W.hotD2:0)+
       evBonus+
       digitPatBonus+
-      islPatBonus;
-    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,digitPatBonus,islPatBonus,rows,vals};
+      islPatBonus+
+      quadBonus;
+    return{u,avg,max,cnt10k,rate10k,evAvg,normAvg,evRows:evRows.length,trend,hotY,hotD2,score,digitPatBonus,islPatBonus,quadBonus,rows,vals};
   }).sort((a,b)=>b.score-a.score);
 }
 
@@ -1247,12 +1242,7 @@ function getTodayDigitSummary(){
     '2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,
     '3_neutral':-6000,'0_warm':-6000,
   };
-  var DP_EVA = {
-    '4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,
-    '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
-    '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
-  };
-  var DP = MACHINE==='eva' ? DP_EVA : DP_DAIKAI;
+  var DP = DP_DAIKAI;
 
   // 過去実績から今日の日付パターン別10k+率を計算
   var dates = getDates().slice().reverse(); // 古い順
@@ -1642,13 +1632,13 @@ function buildStatsExcluding(excludeDate){
           var pp=prevRow.差玉>=10000?'hot':prevRow.差玉>=5000?'warm':prevRow.差玉>=0?'neutral':'cold';
           var DP_D={'4_neutral':15000,'8_neutral':12000,'1_neutral':10000,'9_cold':8000,'9_warm':7000,'4_warm':6000,'0_cold':5000,'4_hot':-12000,'2_neutral':-12000,'6_hot':-8000,'7_warm':-8000,'2_cold':-6000,'5_cold':-6000,'7_cold':-5000,'6_cold':-6000,'3_neutral':-6000,'0_warm':-6000};
           var DP_E={'4_cold':14000,'2_cold':11000,'1_cold':10000,'5_hot':11000,'7_hot':-22000,'1_hot':-13000,'2_hot':-13000,'4_hot':-12000,'9_hot':-9000,'0_cold':-10000};
-          var DP=MACHINE==='eva'?DP_E:DP_D;
+          var DP=DP_D;
           vDigitPat=DP[tDigit+'_'+pp]||0;
         }
         // 島ボーナス
         var ISL_D={'556島':['556','557','558','559','560'],'561島':['561','562','563','564','565'],'566島':['566','567','568','569','570'],'571島':['571','572','573','574','575'],'576島':['576','577','578','579','580'],'581島':['581','582','583','584','585']};
         var ISL_E={'427島':['427','428','429'],'430島':['430','431','432'],'433島':['433','434','435'],'466島':['466','467','468'],'469島':['469','470','471'],'472島':['472','473','474']};
-        var ISL_DEF2=MACHINE==='eva'?ISL_E:ISL_D;
+        var ISL_DEF2=ISL_D;
         var myIsl2=null;Object.keys(ISL_DEF2).forEach(function(n){if(ISL_DEF2[n].indexOf(u)>=0)myIsl2=n;});
         if(myIsl2){
           var iu=ISL_DEF2[myIsl2];
@@ -1658,12 +1648,34 @@ function buildStatsExcluding(excludeDate){
           var ip=ih>=2?'isl_hot':ih===1?'isl_one':ia>=0?'isl_neutral':'isl_cold';
           var IB_D={'566島_isl_hot_7':-11520,'566島_isl_hot_9':9813,'556島_isl_hot_1':8480,'556島_isl_one_1':8480,'561島_isl_hot_9':8480,'571島_isl_hot_5':8480,'571島_isl_one_1':8480,'576島_isl_one_4':8480,'581島_isl_one_8':8480,'556島_isl_hot_7':-7519,'561島_isl_hot_7':-7519,'566島_isl_one_3':-7519,'566島_isl_one_4':-7519};
           var IB_E={'469島_isl_cold_4':18000,'466島_isl_cold_3':11000,'472島_isl_cold_3':11000,'472島_isl_cold_6':11000,'472島_isl_cold_1':9000,'427島_isl_one_3':-9000,'430島_isl_one_3':-9000,'466島_isl_cold_1':-9000,'466島_isl_cold_5':-9000,'469島_isl_one_3':-9000,'469島_isl_one_6':-9000,'472島_isl_one_0':-9000,'472島_isl_cold_5':-9000};
-          var IB2=MACHINE==='eva'?IB_E:IB_D;
+          var IB2=IB_D;
           vIslPat=IB2[myIsl2+'_'+ip+'_'+tDigit]||0;
         }
       }
     }catch(e){}
-    const score=avg*W.avg+max*W.max+cnt10k*W.cnt10k+rate10k*W.rate10k+trend*W.trend+(hotY?W.hotY:0)+(hotD2?W.hotD2:0)+evBonus+vDigitPat+vIslPat;
+    // 4重ボーナス（検証用）
+    var vQuad=0;
+    try{
+      var tDtV=getDayType(excludeDate);
+      var excIdxV=getDates().indexOf(excludeDate);
+      if(excIdxV>=0){
+        var prevDayV=getDates()[excIdxV+1];
+        var prevDtV=prevDayV?getDayType(prevDayV):'wkd';
+        var latestRowV=prevDayV?getByDate(prevDayV).find(function(r){return r.u===u;}):null;
+        if(latestRowV){
+          var pdV=latestRowV.差玉;
+          var ppV=pdV>=10000?'hot':pdV>=5000?'warm':pdV>=0?'neutral':'cold';
+          var QBV={'sat_9_hot':12000,'hol_3_cold':14000,'hol_5_cold':12000,
+            'wkd_7_neutral':10000,'wkd_4_hot':10000,'wkd_1_neutral':10000,
+            'sat_1_cold':10000,'sat_0_cold':9000,'wkd_2_hot':9000,'hol_0_neutral':9000,
+            'sat_4_hot':-20000,'wkd_5_warm':-12000,'wkd_9_warm':-12000,
+            'sun_7_cold':-12000,'wkd_2_neutral':-10000,'sat_4_cold':-9000};
+          vQuad=(QBV[tDtV+'_'+tDigit+'_'+ppV]||0);
+        }
+        if(prevDtV==='sun') vQuad+=-3000;
+      }
+    }catch(e){}
+    const score=avg*W.avg+max*W.max+cnt10k*W.cnt10k+rate10k*W.rate10k+trend*W.trend+(hotY?W.hotY:0)+(hotD2?W.hotD2:0)+evBonus+vDigitPat+vIslPat+vQuad;
     return{u,avg,max,cnt10k,rate10k,evAvg,trend,hotY,hotD2,score,vals};
   }).sort((a,b)=>b.score-a.score);
   const islStats=buildIslandStats(taiStats);
@@ -2185,7 +2197,7 @@ function getPatternMatchUnits(){
     '7_hot':-22000,'1_hot':-13000,'2_hot':-13000,
     '4_hot':-12000,'9_hot':-9000,'0_cold':-10000,
   };
-  var DP = MACHINE==='eva' ? DP_E : DP_D;
+  var DP = DP_D;
 
   var matches = [];
   prevData.forEach(function(r){
